@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="米国株">
+<title>米国株サーチ</title>
+<style>
+  /* ===== 基本リセット ===== */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+  :root {
+    --bg:        #000000;
+    --surface:   #16181c;
+    --surface2:  #1f2228;
+    --border:    #2a2e35;
+    --text:      #f2f3f5;
+    --text-sub:  #9aa0a8;
+    --text-dim:  #6b7178;
+    --up:        #1fc77b;  /* 上昇=緑 */
+    --down:      #ff5b5b;  /* 下落=赤 */
+    --accent:    #3b82f6;
+    --danger:    #ff3b30;
+    --radius:    14px;
+    --tap:       44px;
+    /* セーフエリア */
+    --safe-top:    env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", sans-serif;
+    width: 100%;
+    overflow-x: hidden;            /* 横スクロール禁止 */
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    min-height: 100vh;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  /* ===== レイアウト ===== */
+  .app {
+    max-width: 100%;
+    padding-bottom: calc(64px + var(--safe-bottom)); /* タブバー分 */
+  }
+  .page { display: none; padding: 0 16px; }
+  .page.active { display: block; }
+  .page-pad-top { padding-top: calc(var(--safe-top) + 12px); }
+
+  h1.app-title {
+    font-size: 20px;
+    font-weight: 700;
+    padding: 4px 0 14px;
+    letter-spacing: 0.02em;
+  }
+  .section-label {
+    font-size: 13px;
+    color: var(--text-sub);
+    margin: 18px 0 8px;
+    font-weight: 600;
+  }
+
+  /* ===== 入力・ボタン ===== */
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 16px;              /* 16px未満だとiOSで拡大される */
+    padding: 13px 14px;
+    outline: none;
+  }
+  input::placeholder { color: var(--text-dim); }
+  input:focus { border-color: var(--accent); }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    color: var(--text);
+    background: var(--surface2);
+    border-radius: var(--radius);
+    font-size: 16px;
+    min-height: var(--tap);
+    padding: 0 16px;
+  }
+  button:active { opacity: 0.7; }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    width: 100%;
+    min-height: 48px;
+  }
+  .btn-row { display: flex; gap: 10px; }
+  .btn-row > * { flex: 1; }
+  .btn-ghost {
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .btn-danger { background: var(--danger); color: #fff; }
+
+  .search-row { display: flex; gap: 10px; margin-bottom: 4px; }
+  .search-row input { flex: 1; text-transform: uppercase; }
+  .search-row button { flex: 0 0 auto; padding: 0 20px; font-weight: 600; }
+
+  /* ===== カード ===== */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  /* ===== 状態表示（ローディング/エラー/空） ===== */
+  .status {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-sub);
+    font-size: 15px;
+  }
+  .status .big { font-size: 40px; margin-bottom: 12px; }
+  .status.error { color: var(--down); }
+  .spinner {
+    width: 34px; height: 34px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    margin: 0 auto 14px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== 詳細：価格ヘッダ ===== */
+  .quote-head { margin-bottom: 4px; }
+  .quote-symbol { font-size: 26px; font-weight: 700; }
+  .quote-company { font-size: 14px; color: var(--text-sub); margin-top: 2px; word-break: break-word; }
+  .quote-price { font-size: 38px; font-weight: 700; margin-top: 10px; line-height: 1.1; }
+  .quote-change { font-size: 17px; font-weight: 600; margin-top: 4px; }
+  .quote-time { font-size: 12px; color: var(--text-dim); margin-top: 6px; }
+  .up { color: var(--up); }
+  .down { color: var(--down); }
+  .flat { color: var(--text-sub); }
+
+  /* ===== 指標グリッド ===== */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .grid .cell {
+    background: var(--surface);
+    padding: 11px 13px;
+  }
+  .grid .cell .k { font-size: 12px; color: var(--text-sub); }
+  .grid .cell .v { font-size: 16px; font-weight: 600; margin-top: 2px; word-break: break-word; }
+
+  /* ===== 事業内容 ===== */
+  .desc-text {
+    font-size: 14px;
+    color: var(--text-sub);
+    line-height: 1.6;
+    word-break: break-word;
+  }
+  .desc-note {
+    font-size: 12px;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 9px 11px;
+    margin-top: 10px;
+  }
+
+  /* ===== ニュース ===== */
+  .news-item { display: block; color: var(--text); text-decoration: none; }
+  .news-title { font-size: 14px; font-weight: 600; line-height: 1.4; word-break: break-word; }
+  .news-meta { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+  /* ===== ウォッチリスト ===== */
+  .wl-item-wrap {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+  }
+  .wl-delete {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 84px;
+    background: var(--danger);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 0;
+  }
+  .wl-item {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 13px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    transition: transform 0.22s ease;
+    touch-action: pan-y;          /* 縦スクロールは許可、横はJSで処理 */
+    will-change: transform;
+  }
+  .wl-left { min-width: 0; }
+  .wl-sym { font-size: 17px; font-weight: 700; }
+  .wl-name { font-size: 12px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 46vw; }
+  .wl-right { text-align: right; flex: 0 0 auto; }
+  .wl-price { font-size: 16px; font-weight: 700; }
+  .wl-chg { font-size: 13px; font-weight: 600; margin-top: 1px; }
+
+  /* ===== 詳細画面（フルスクリーンオーバーレイ） ===== */
+  .detail {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 50;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: none;
+    padding: 0 16px calc(30px + var(--safe-bottom));
+  }
+  .detail.active { display: block; }
+  .detail-bar {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    padding-top: calc(var(--safe-top) + 8px);
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    z-index: 2;
+  }
+  .detail-bar .back {
+    background: none;
+    padding: 0;
+    min-height: var(--tap);
+    display: flex; align-items: center;
+    font-size: 16px; color: var(--accent);
+  }
+  .watch-toggle {
+    min-height: var(--tap);
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+  .watch-toggle.added { background: var(--up); color: #00210f; border-color: transparent; }
+
+  /* ===== 下部タブバー ===== */
+  .tabbar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: rgba(12,13,15,0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding-bottom: var(--safe-bottom);   /* ホームバー回避 */
+    z-index: 40;
+  }
+  .tabbar button {
+    flex: 1;
+    background: none;
+    border-radius: 0;
+    color: var(--text-dim);
+    font-size: 11px;
+    min-height: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 0;
+  }
+  .tabbar button .ic { font-size: 20px; line-height: 1; }
+  .tabbar button.active { color: var(--accent); }
+
+  /* ===== 設定 ===== */
+  .key-status { font-size: 13px; margin: 8px 0 14px; }
+  .key-status.ok { color: var(--up); }
+  .key-status.ng { color: var(--down); }
+  .help-text { font-size: 13px; color: var(--text-sub); line-height: 1.6; }
+  .help-text a { color: var(--accent); }
+  .file-input-hidden { display: none; }
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(80px + var(--safe-bottom));
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 11px 18px;
+    border-radius: 22px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
+    z-index: 100;
+    max-width: 90vw;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .divider { height: 1px; background: var(--border); margin: 18px 0; border: none; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ====== 検索タブ ====== -->
+  <section class="page active page-pad-top" id="page-search">
+    <h1 class="app-title">米国株サーチ</h1>
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="ティッカー（例: AAPL）"
+             autocapitalize="characters" autocorrect="off" spellcheck="false"
+             enterkeyhint="search">
+      <button class="btn-primary" id="searchBtn" style="width:auto;">検索</button>
+    </div>
+    <p class="help-text" style="margin-top:10px;">企業のティッカーコードを入力して検索してください。会社名の一部（例: apple）でも候補を探せます。</p>
+    <div id="searchResultArea"></div>
+  </section>
+
+  <!-- ====== ウォッチリストタブ ====== -->
+  <section class="page page-pad-top" id="page-watch">
+    <h1 class="app-title">ウォッチリスト</h1>
+    <div class="btn-row" style="margin-bottom:14px;">
+      <button class="btn-ghost" id="refreshBtn">価格を更新</button>
+    </div>
+    <p class="help-text" style="margin-bottom:14px;color:var(--text-dim);">行を左にスワイプすると削除できます。タップで詳細を表示。</p>
+    <div id="watchListArea"></div>
+  </section>
+
+  <!-- ====== 設定タブ ====== -->
+  <section class="page page-pad-top" id="page-settings">
+    <h1 class="app-title">設定</h1>
+
+    <div class="section-label">APIキー（Finnhub）</div>
+    <div class="card">
+      <div class="key-status" id="keyStatus"></div>
+      <input type="password" id="apiKeyInput" placeholder="ここにAPIキーを貼り付け"
+             autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div class="btn-row" style="margin-top:10px;">
+        <button class="btn-primary" id="saveKeyBtn" style="flex:2;">保存</button>
+        <button class="btn-danger" id="clearKeyBtn" style="flex:1;">削除</button>
+      </div>
+      <p class="help-text" style="margin-top:12px;">
+        キーは <a href="https://finnhub.io/register" target="_blank" rel="noopener">finnhub.io</a> の無料登録で取得できます。
+        入力したキーはこの端末（ブラウザのlocalStorage）にのみ保存され、外部には送信されません。
+      </p>
+    </div>
+
+    <div class="section-label">データ管理</div>
+    <div class="card">
+      <p class="help-text" style="margin-bottom:12px;">ウォッチリストをファイルに書き出し／復元できます。</p>
+      <div class="btn-row" style="margin-bottom:10px;">
+        <button class="btn-ghost" id="exportJsonBtn">JSON書き出し</button>
+        <button class="btn-ghost" id="exportCsvBtn">CSV書き出し</button>
+      </div>
+      <button class="btn-ghost" id="importBtn" style="width:100%;">JSON読み込み（復元）</button>
+      <input type="file" id="importFile" accept="application/json,.json" class="file-input-hidden">
+    </div>
+
+    <div class="section-label">このアプリについて</div>
+    <div class="card">
+      <p class="help-text">
+        データ提供: Finnhub（無料枠・最大15分遅延）。<br>
+        無料枠は米国市場の銘柄に対応しています。リクエストは1分あたり60回までです。
+      </p>
+    </div>
+  </section>
+
+  <!-- ====== 詳細オーバーレイ ====== -->
+  <div class="detail" id="detailView">
+    <div class="detail-bar">
+      <button class="back" id="detailBack">‹ 戻る</button>
+      <button class="watch-toggle" id="watchToggle">＋ 追加</button>
+    </div>
+    <div id="detailBody"></div>
+  </div>
+
+  <!-- ====== 下部タブバー ====== -->
+  <nav class="tabbar">
+    <button class="active" data-tab="search"><span class="ic">🔍</span>検索</button>
+    <button data-tab="watch"><span class="ic">⭐️</span>ウォッチ</button>
+    <button data-tab="settings"><span class="ic">⚙️</span>設定</button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+"use strict";
+/* ========================================================================
+   定数・ストレージキー
+   ======================================================================== */
+const API_BASE = "https://finnhub.io/api/v1";
+const LS_KEY  = "finnhub_api_key";
+const LS_WATCH = "stock_watchlist";
+
+/* ========================================================================
+   小さなユーティリティ
+   ======================================================================== */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+function getApiKey() { return localStorage.getItem(LS_KEY) || ""; }
+function setApiKey(k) { localStorage.setItem(LS_KEY, k); }
+function removeApiKey() { localStorage.removeItem(LS_KEY); }
+
+function getWatchlist() {
+  try { return JSON.parse(localStorage.getItem(LS_WATCH)) || []; }
+  catch (e) { return []; }
+}
+function setWatchlist(list) { localStorage.setItem(LS_WATCH, JSON.stringify(list)); }
+
+let toastTimer = null;
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* 数値フォーマット ---------------------------------------------------- */
+function fmtPrice(n) {
+  if (n === null || n === undefined || isNaN(n) || n === 0) return "—";
+  return "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtNum(n, digits = 2) {
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  return Number(n).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: digits });
+}
+function fmtPct(n) {
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  const s = Number(n).toFixed(2);
+  return (n > 0 ? "+" : "") + s + "%";
+}
+/* 時価総額（百万ドル単位で来る）を「億ドル/兆ドル」表記に */
+function fmtMarketCap(millionUSD) {
+  if (!millionUSD || isNaN(millionUSD)) return "—";
+  const usd = millionUSD * 1e6;
+  if (usd >= 1e12) return fmtNum(usd / 1e12, 2) + " 兆ドル";
+  if (usd >= 1e8)  return fmtNum(usd / 1e8, 1) + " 億ドル";
+  return "$" + fmtNum(usd, 0);
+}
+/* 大きな株数（百万株単位で来る）を読みやすく */
+function fmtShares(millionShares) {
+  if (!millionShares || isNaN(millionShares)) return "—";
+  const shares = millionShares * 1e6;
+  if (shares >= 1e8) return fmtNum(shares / 1e8, 1) + " 億株";
+  if (shares >= 1e4) return fmtNum(shares / 1e4, 1) + " 万株";
+  return fmtNum(shares, 0) + " 株";
+}
+function fmtDate(unixSec) {
+  if (!unixSec) return "";
+  const d = new Date(unixSec * 1000);
+  return d.toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+function nowTimeLabel() {
+  return new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }) + " 取得";
+}
+function changeClass(n) {
+  if (n > 0) return "up";
+  if (n < 0) return "down";
+  return "flat";
+}
+
+/* ========================================================================
+   API 呼び出し
+   ======================================================================== */
+async function apiFetch(path, params = {}) {
+  const key = getApiKey();
+  if (!key) { const e = new Error("NO_KEY"); e.code = "NO_KEY"; throw e; }
+  const url = new URL(API_BASE + path);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  url.searchParams.set("token", key);
+
+  let res;
+  try {
+    res = await fetch(url.toString());
+  } catch (netErr) {
+    const e = new Error("NETWORK"); e.code = "NETWORK"; throw e;
+  }
+  if (res.status === 401 || res.status === 403) { const e = new Error("BAD_KEY"); e.code = "BAD_KEY"; throw e; }
+  if (res.status === 429) { const e = new Error("RATE"); e.code = "RATE"; throw e; }
+  if (!res.ok) { const e = new Error("HTTP_" + res.status); e.code = "HTTP"; throw e; }
+  return res.json();
+}
+
+function errorMessage(err) {
+  switch (err && err.code) {
+    case "NO_KEY":  return "APIキーが未設定です。設定タブでキーを保存してください。";
+    case "BAD_KEY": return "APIキーが無効です。設定タブで正しいキーを確認してください。";
+    case "RATE":    return "リクエストが多すぎます（1分60回まで）。少し待ってから再試行してください。";
+    case "NETWORK": return "通信に失敗しました。電波・接続を確認してください。";
+    default:        return "データの取得に失敗しました。時間をおいて再試行してください。";
+  }
+}
+
+/* quote だけを取得（ウォッチリストの軽量更新用） */
+async function fetchQuote(symbol) {
+  return apiFetch("/quote", { symbol });
+}
+
+/* 詳細用にまとめて取得 */
+async function fetchDetail(symbol) {
+  const today = new Date();
+  const from = new Date(today.getTime() - 14 * 86400000); // 14日前
+  const iso = (d) => d.toISOString().slice(0, 10);
+
+  // quote は必須。他は取れなくても詳細は表示する（個別にcatch）
+  const quote = await fetchQuote(symbol);
+  const [profile, metric, news] = await Promise.all([
+    apiFetch("/stock/profile2", { symbol }).catch(() => null),
+    apiFetch("/stock/metric", { symbol, metric: "all" }).catch(() => null),
+    apiFetch("/company-news", { symbol, from: iso(from), to: iso(today) }).catch(() => null),
+  ]);
+  return { quote, profile, metric, news };
+}
+
+/* ========================================================================
+   タブ切り替え
+   ======================================================================== */
+function switchTab(tab) {
+  $$(".tabbar button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+  $$(".page").forEach((p) => p.classList.remove("active"));
+  $("#page-" + tab).classList.add("active");
+  if (tab === "watch") renderWatchlist();
+  if (tab === "settings") renderKeyStatus();
+  window.scrollTo(0, 0);
+}
+$$(".tabbar button").forEach((b) => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+
+/* ========================================================================
+   検索
+   ======================================================================== */
+async function doSearch() {
+  const raw = $("#searchInput").value.trim();
+  if (!raw) { toast("ティッカーを入力してください"); return; }
+  const area = $("#searchResultArea");
+
+  if (!getApiKey()) {
+    area.innerHTML = statusHtml("error", "🔑", "APIキーが未設定です。下の設定タブでキーを保存してください。");
+    return;
+  }
+
+  area.innerHTML = loadingHtml("検索中…");
+  const symbol = raw.toUpperCase();
+
+  // まず直接 quote を試す。データが無ければ symbol/search で候補提示。
+  try {
+    const q = await fetchQuote(symbol);
+    if (q && q.c && q.c > 0) {
+      openDetail(symbol);
+      area.innerHTML = "";
+      return;
+    }
+    // 直ヒットしない → 候補検索
+    const sr = await apiFetch("/search", { q: raw });
+    renderSearchCandidates(sr, area);
+  } catch (err) {
+    area.innerHTML = statusHtml("error", "⚠️", errorMessage(err));
+  }
+}
+
+function renderSearchCandidates(sr, area) {
+  const results = (sr && sr.result) ? sr.result.filter(r => r.symbol && !r.symbol.includes(".")) : [];
+  if (results.length === 0) {
+    area.innerHTML = statusHtml("", "🔍", "該当する銘柄が見つかりませんでした。ティッカーをご確認ください。");
+    return;
+  }
+  let html = '<div class="section-label">候補</div>';
+  results.slice(0, 15).forEach((r) => {
+    html += `<div class="wl-item-wrap"><div class="wl-item" onclick="openDetail('${r.symbol}')">
+        <div class="wl-left">
+          <div class="wl-sym">${escapeHtml(r.symbol)}</div>
+          <div class="wl-name">${escapeHtml(r.description || "")}</div>
+        </div>
+        <div class="wl-right"><span class="flat">›</span></div>
+      </div></div>`;
+  });
+  area.innerHTML = html;
+}
+
+$("#searchBtn").addEventListener("click", doSearch);
+$("#searchInput").addEventListener("keydown", (e) => { if (e.key === "Enter") doSearch(); });
+
+/* ========================================================================
+   詳細画面
+   ======================================================================== */
+let currentSymbol = null;
+
+async function openDetail(symbol) {
+  currentSymbol = symbol;
+  const view = $("#detailView");
+  const body = $("#detailBody");
+  view.classList.add("active");
+  body.innerHTML = loadingHtml("読み込み中…");
+  updateWatchToggle();
+
+  try {
+    const data = await fetchDetail(symbol);
+    renderDetail(symbol, data);
+  } catch (err) {
+    body.innerHTML = statusHtml("error", "⚠️", errorMessage(err));
+  }
+}
+
+function renderDetail(symbol, data) {
+  const { quote, profile, metric, news } = data;
+  const m = (metric && metric.metric) ? metric.metric : {};
+  const p = profile || {};
+  const q = quote || {};
+
+  const change = q.d;        // 変化額
+  const changePct = q.dp;    // 変化率
+  const cls = changeClass(change);
+  const sign = change > 0 ? "+" : "";
+  const companyName = p.name || "";
+
+  let html = "";
+
+  /* --- 価格ヘッダ --- */
+  html += `<div class="card quote-head">
+    <div class="quote-symbol">${escapeHtml(symbol)}</div>
+    ${companyName ? `<div class="quote-company">${escapeHtml(companyName)}</div>` : ""}
+    <div class="quote-price">${fmtPrice(q.c)}</div>
+    <div class="quote-change ${cls}">${change!=null ? sign + fmtNum(change,2) : "—"} (${fmtPct(changePct)})</div>
+    <div class="quote-time">${nowTimeLabel()}・15分遅延の場合があります</div>
+  </div>`;
+
+  /* --- 当日の値動き --- */
+  html += `<div class="section-label">本日の値動き</div>
+    <div class="grid">
+      ${cell("前日終値", fmtPrice(q.pc))}
+      ${cell("始値", fmtPrice(q.o))}
+      ${cell("高値", fmtPrice(q.h))}
+      ${cell("安値", fmtPrice(q.l))}
+    </div>`;
+
+  /* --- 四季報的指標 --- */
+  const week52High = m["52WeekHigh"];
+  const week52Low  = m["52WeekLow"];
+  html += `<div class="section-label">会社規模・指標</div>
+    <div class="grid">
+      ${cell("時価総額", fmtMarketCap(p.marketCapitalization))}
+      ${cell("発行済株式数", fmtShares(p.shareOutstanding))}
+      ${cell("PER（株価収益率）", fmtNum(m.peTTM ?? m.peBasicExclExtraTTM, 2))}
+      ${cell("PBR（株価純資産倍率）", fmtNum(m.pbAnnual ?? m.pbQuarterly, 2))}
+      ${cell("EPS（1株利益）", m.epsTTM!=null ? "$"+fmtNum(m.epsTTM,2) : "—")}
+      ${cell("配当利回り", m.currentDividendYieldTTM!=null ? fmtNum(m.currentDividendYieldTTM,2)+"%" : (m.dividendYieldIndicatedAnnual!=null ? fmtNum(m.dividendYieldIndicatedAnnual,2)+"%" : "—"))}
+      ${cell("52週高値", fmtPrice(week52High))}
+      ${cell("52週安値", fmtPrice(week52Low))}
+      ${cell("ベータ値", fmtNum(m.beta, 2))}
+      ${cell("出来高", q.v!=null ? fmtNum(q.v,0) : (m["10DayAverageTradingVolume"]!=null ? fmtNum(m["10DayAverageTradingVolume"]*1e6,0)+"（10日平均）" : "—"))}
+    </div>`;
+
+  /* --- 分類 --- */
+  html += `<div class="section-label">分類</div>
+    <div class="grid">
+      ${cell("業種・セクター", p.finnhubIndustry ? escapeHtml(p.finnhubIndustry) : "—")}
+      ${cell("上場市場", p.exchange ? escapeHtml(p.exchange) : "—")}
+      ${cell("国", p.country ? escapeHtml(p.country) : "—")}
+      ${cell("通貨", p.currency ? escapeHtml(p.currency) : "—")}
+    </div>`;
+
+  /* --- 事業内容（英語のまま） --- */
+  // Finnhub profile2 は長文説明を提供しないため、入手できる情報を要約掲示
+  const webUrl = p.weburl;
+  let descParts = [];
+  if (p.name) descParts.push(p.name);
+  if (p.finnhubIndustry) descParts.push("Industry: " + p.finnhubIndustry);
+  if (p.ipo) descParts.push("IPO: " + p.ipo);
+  if (descParts.length) {
+    html += `<div class="section-label">会社情報</div>
+      <div class="card">
+        <div class="desc-text">${escapeHtml(descParts.join(" / "))}${webUrl ? `<br><br><a href="${escapeAttr(webUrl)}" target="_blank" rel="noopener" style="color:var(--accent);">${escapeHtml(webUrl)}</a>` : ""}</div>
+        <div class="desc-note">英語の長文情報は、公式サイトを Safari の「日本語に翻訳」機能で読むのが便利です。</div>
+      </div>`;
+  }
+
+  /* --- 最新ニュース1件 --- */
+  if (news && news.length > 0) {
+    const n = news[0];
+    html += `<div class="section-label">最新ニュース</div>
+      <div class="card">
+        <a class="news-item" href="${escapeAttr(n.url)}" target="_blank" rel="noopener">
+          <div class="news-title">${escapeHtml(n.headline || "")}</div>
+          <div class="news-meta">${escapeHtml(n.source || "")}・${fmtDate(n.datetime)}</div>
+        </a>
+        <div class="desc-note">英語の見出しは Safari の翻訳機能で日本語化できます。</div>
+      </div>`;
+  }
+
+  $("#detailBody").innerHTML = html;
+}
+
+function cell(k, v) {
+  return `<div class="cell"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+}
+
+$("#detailBack").addEventListener("click", () => {
+  $("#detailView").classList.remove("active");
+  currentSymbol = null;
+});
+
+/* ウォッチリスト追加/削除トグル */
+function updateWatchToggle() {
+  const btn = $("#watchToggle");
+  const inList = getWatchlist().some((w) => w.symbol === currentSymbol);
+  if (inList) {
+    btn.textContent = "✓ 追加済み";
+    btn.classList.add("added");
+  } else {
+    btn.textContent = "＋ 追加";
+    btn.classList.remove("added");
+  }
+}
+$("#watchToggle").addEventListener("click", () => {
+  if (!currentSymbol) return;
+  let list = getWatchlist();
+  const idx = list.findIndex((w) => w.symbol === currentSymbol);
+  if (idx >= 0) {
+    list.splice(idx, 1);
+    setWatchlist(list);
+    toast(currentSymbol + " を削除しました");
+  } else {
+    // 会社名も保存しておく（一覧表示用）
+    const nameEl = $(".quote-company");
+    list.push({ symbol: currentSymbol, name: nameEl ? nameEl.textContent : "" });
+    setWatchlist(list);
+    toast(currentSymbol + " を追加しました");
+  }
+  updateWatchToggle();
+});
+
+/* ========================================================================
+   ウォッチリスト表示
+   ======================================================================== */
+async function renderWatchlist() {
+  const area = $("#watchListArea");
+  const list = getWatchlist();
+
+  if (!getApiKey()) {
+    area.innerHTML = statusHtml("error", "🔑", "APIキーが未設定です。設定タブでキーを保存してください。");
+    return;
+  }
+  if (list.length === 0) {
+    area.innerHTML = statusHtml("", "⭐️", "ウォッチリストは空です。検索タブで銘柄を探し、詳細画面の「＋ 追加」で登録できます。");
+    return;
+  }
+
+  // 枠だけ先に描画
+  let html = "";
+  list.forEach((w) => {
+    html += `<div class="wl-item-wrap" data-symbol="${escapeAttr(w.symbol)}">
+        <div class="wl-delete">削除</div>
+        <div class="wl-item">
+          <div class="wl-left">
+            <div class="wl-sym">${escapeHtml(w.symbol)}</div>
+            <div class="wl-name">${escapeHtml(w.name || "")}</div>
+          </div>
+          <div class="wl-right">
+            <div class="wl-price" data-price>…</div>
+            <div class="wl-chg flat" data-chg>取得中</div>
+          </div>
+        </div>
+      </div>`;
+  });
+  area.innerHTML = html;
+
+  attachSwipeHandlers();
+  attachWatchTap();
+
+  // 逐次取得（レート制限に優しい）
+  for (const w of list) {
+    const wrap = area.querySelector(`.wl-item-wrap[data-symbol="${cssEsc(w.symbol)}"]`);
+    if (!wrap) continue;
+    try {
+      const q = await fetchQuote(w.symbol);
+      const priceEl = wrap.querySelector("[data-price]");
+      const chgEl = wrap.querySelector("[data-chg]");
+      priceEl.textContent = fmtPrice(q.c);
+      const cls = changeClass(q.d);
+      chgEl.className = "wl-chg " + cls;
+      chgEl.textContent = (q.d > 0 ? "+" : "") + fmtNum(q.d, 2) + " (" + fmtPct(q.dp) + ")";
+    } catch (err) {
+      const chgEl = wrap.querySelector("[data-chg]");
+      if (chgEl) { chgEl.className = "wl-chg down"; chgEl.textContent = (err.code === "RATE" ? "制限中" : "取得失敗"); }
+    }
+  }
+}
+
+$("#refreshBtn").addEventListener("click", () => { renderWatchlist(); toast("価格を更新しました"); });
+
+/* タップで詳細へ（スワイプ中は無効化） */
+function attachWatchTap() {
+  $$("#watchListArea .wl-item").forEach((item) => {
+    item.addEventListener("click", function (e) {
+      const wrap = item.closest(".wl-item-wrap");
+      if (wrap && wrap.dataset.swiping === "1") return; // スワイプ直後は無視
+      if (wrap && wrap.dataset.open === "1") {          // 開いてたら閉じる
+        closeSwipe(wrap); return;
+      }
+      const sym = wrap.dataset.symbol;
+      if (sym) openDetail(sym);
+    });
+  });
+}
+
+/* ====== スワイプ削除 ====== */
+function attachSwipeHandlers() {
+  $$("#watchListArea .wl-item-wrap").forEach((wrap) => {
+    const item = wrap.querySelector(".wl-item");
+    const del = wrap.querySelector(".wl-delete");
+    let startX = 0, startY = 0, curX = 0, dragging = false, decided = false, horizontal = false;
+    const THRESH = 84; // 削除ボタン幅
+
+    item.addEventListener("touchstart", (e) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      curX = startX; dragging = true; decided = false; horizontal = false;
+      wrap.dataset.swiping = "0";
+    }, { passive: true });
+
+    item.addEventListener("touchmove", (e) => {
+      if (!dragging) return;
+      const x = e.touches[0].clientX;
+      const y = e.touches[0].clientY;
+      const dx = x - startX;
+      const dy = y - startY;
+      if (!decided) {
+        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+          decided = true;
+          horizontal = Math.abs(dx) > Math.abs(dy);
+        }
+      }
+      if (!horizontal) return;               // 縦スクロールに任せる
+      e.preventDefault();
+      wrap.dataset.swiping = "1";
+      const base = (wrap.dataset.open === "1") ? -THRESH : 0;
+      let tx = base + dx;
+      if (tx > 0) tx = 0;
+      if (tx < -THRESH - 30) tx = -THRESH - 30;
+      item.style.transition = "none";
+      item.style.transform = `translateX(${tx}px)`;
+      curX = tx;
+    }, { passive: false });
+
+    item.addEventListener("touchend", () => {
+      if (!dragging) return;
+      dragging = false;
+      item.style.transition = "transform 0.22s ease";
+      if (curX < -THRESH / 2) {
+        item.style.transform = `translateX(${-THRESH}px)`;
+        wrap.dataset.open = "1";
+      } else {
+        item.style.transform = "translateX(0)";
+        wrap.dataset.open = "0";
+      }
+      // タップ誤爆防止フラグを少し残す
+      setTimeout(() => { wrap.dataset.swiping = "0"; }, 50);
+    });
+
+    del.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const sym = wrap.dataset.symbol;
+      removeFromWatch(sym);
+      wrap.style.transition = "opacity 0.2s, transform 0.2s";
+      wrap.style.opacity = "0";
+      wrap.style.transform = "translateX(-100%)";
+      setTimeout(() => renderWatchlist(), 200);
+    });
+  });
+}
+function closeSwipe(wrap) {
+  const item = wrap.querySelector(".wl-item");
+  item.style.transition = "transform 0.22s ease";
+  item.style.transform = "translateX(0)";
+  wrap.dataset.open = "0";
+}
+function removeFromWatch(symbol) {
+  let list = getWatchlist().filter((w) => w.symbol !== symbol);
+  setWatchlist(list);
+  toast(symbol + " を削除しました");
+}
+
+/* ========================================================================
+   設定：APIキー
+   ======================================================================== */
+function renderKeyStatus() {
+  const el = $("#keyStatus");
+  const k = getApiKey();
+  if (k) {
+    el.className = "key-status ok";
+    el.textContent = "✓ キーは保存済みです（末尾 …" + k.slice(-4) + "）";
+    $("#apiKeyInput").value = "";
+    $("#apiKeyInput").placeholder = "変更する場合は新しいキーを入力";
+  } else {
+    el.className = "key-status ng";
+    el.textContent = "● キーが未設定です";
+    $("#apiKeyInput").placeholder = "ここにAPIキーを貼り付け";
+  }
+}
+$("#saveKeyBtn").addEventListener("click", () => {
+  const v = $("#apiKeyInput").value.trim();
+  if (!v) { toast("キーを入力してください"); return; }
+  setApiKey(v);
+  renderKeyStatus();
+  toast("APIキーを保存しました");
+});
+$("#clearKeyBtn").addEventListener("click", () => {
+  removeApiKey();
+  renderKeyStatus();
+  toast("APIキーを削除しました");
+});
+
+/* ========================================================================
+   データ管理：エクスポート / インポート
+   ======================================================================== */
+function dateStamp() {
+  const d = new Date();
+  return d.getFullYear() + String(d.getMonth() + 1).padStart(2, "0") + String(d.getDate()).padStart(2, "0");
+}
+function downloadFile(filename, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$("#exportJsonBtn").addEventListener("click", () => {
+  const list = getWatchlist();
+  if (list.length === 0) { toast("ウォッチリストが空です"); return; }
+  downloadFile("watchlist_" + dateStamp() + ".json", JSON.stringify(list, null, 2), "application/json");
+  toast("JSONを書き出しました");
+});
+$("#exportCsvBtn").addEventListener("click", () => {
+  const list = getWatchlist();
+  if (list.length === 0) { toast("ウォッチリストが空です"); return; }
+  let csv = "symbol,name\n";
+  list.forEach((w) => {
+    const name = (w.name || "").replace(/"/g, '""');
+    csv += `${w.symbol},"${name}"\n`;
+  });
+  downloadFile("watchlist_" + dateStamp() + ".csv", "﻿" + csv, "text/csv");
+  toast("CSVを書き出しました");
+});
+$("#importBtn").addEventListener("click", () => $("#importFile").click());
+$("#importFile").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!Array.isArray(data)) throw new Error("format");
+      // 最低限の検証
+      const clean = data.filter((x) => x && typeof x.symbol === "string")
+                        .map((x) => ({ symbol: x.symbol.toUpperCase(), name: x.name || "" }));
+      setWatchlist(clean);
+      toast(clean.length + " 件を読み込みました");
+      renderWatchlist();
+    } catch (err) {
+      toast("読み込み失敗：JSON形式が正しくありません");
+    }
+    $("#importFile").value = "";
+  };
+  reader.readAsText(file);
+});
+
+/* ========================================================================
+   HTMLエスケープ等
+   ======================================================================== */
+function escapeHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function escapeAttr(s) { return escapeHtml(s); }
+function cssEsc(s) { return String(s).replace(/["\\]/g, "\\$&"); }
+
+function loadingHtml(msg) {
+  return `<div class="status"><div class="spinner"></div>${escapeHtml(msg)}</div>`;
+}
+function statusHtml(kind, icon, msg) {
+  return `<div class="status ${kind}"><div class="big">${icon}</div>${escapeHtml(msg)}</div>`;
+}
+
+/* ========================================================================
+   初期化
+   ======================================================================== */
+(function init() {
+  renderKeyStatus();
+  // キー未設定なら設定タブへ誘導
+  if (!getApiKey()) {
+    setTimeout(() => {
+      switchTab("settings");
+      toast("はじめにAPIキーを設定してください");
+    }, 300);
+  }
+})();
+</script>
+</body>
+</html>
