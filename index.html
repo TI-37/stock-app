@@ -16,7 +16,9 @@
     padding: 0;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
+    scrollbar-width: none;
   }
+  *::-webkit-scrollbar { display: none; width: 0; height: 0; }
   :root {
     --bg:        #000000;
     --surface:   #1c1f26;
@@ -98,10 +100,10 @@
     width: 100%;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 12px;
     color: var(--text);
     font-size: 16px;
-    padding: 13px 14px;
+    padding: 11px 13px;
     outline: none;
   }
   input::placeholder { color: var(--text-dim); }
@@ -134,7 +136,7 @@
     z-index: 30;
   }
   .search-wrap { position: relative; }
-  .search-wrap input { padding: 9px 14px; padding-right: 44px; text-transform: uppercase; }
+  .search-wrap input { padding: 11px 14px; padding-right: 44px; text-transform: uppercase; }
   .search-icon-btn {
     position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
     width: 32px; height: 32px; min-height: 32px; padding: 0;
@@ -297,35 +299,48 @@
   .earn-head span { font-size: 11px; color: var(--text-sub); font-weight: 600; }
 
   /* ===== ウォッチリスト ===== */
-  #page-watch .scroll-area { padding-bottom: 88px; }
+  /* ウォッチ：ヘッダ固定・リストのみスクロール */
+  #page-watch.active {
+    display: flex; flex-direction: column;
+    position: fixed; inset: 0; bottom: calc(var(--tabbar) + var(--safe-bottom));
+    padding: calc(var(--safe-top) + 12px) 16px 0;
+  }
+  .watch-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 70px; }
+  /* 下部ボタン付近を通過するとフェードアウト */
+  .fade-bottom {
+    -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 80%, transparent 100%);
+  }
   /* ウォッチのタブ（手帳インデックス風・最上部銘柄の上） */
   .watch-tabs-wrap { display: flex; align-items: center; margin-bottom: 10px; }
   .watch-tabs {
     flex: 1 1 auto; min-width: 0;
-    display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; align-items: center; padding: 3px 2px;
+    display: flex; gap: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; align-items: center; padding: 4px 2px;
+    scroll-snap-type: x proximity;
   }
   .watch-tabs::-webkit-scrollbar { display: none; }
-  /* 円形タブ（選択中のみ少し拡大） */
+  /* 円形タブ（下部アイコンと同程度サイズ・選択中のみ少し拡大・頭文字1字） */
   .wtab {
-    flex: 0 0 auto; width: 42px; height: 42px;
+    flex: 0 0 auto; width: 32px; height: 32px; min-width: 32px; min-height: 32px; scroll-snap-align: center;
     background: var(--surface); border: 1px solid var(--border); border-radius: 50%;
-    font-size: 13px; font-weight: 700; color: var(--text-sub);
+    color: var(--accent); font-size: 17px; font-weight: 700;
     display: flex; align-items: center; justify-content: center; overflow: hidden;
-    transition: width 0.18s ease, height 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
   }
+  .wtab svg { width: 17px; height: 17px; flex: 0 0 auto; }
   .wtab.active {
-    width: 52px; height: 52px;
     background: var(--accent); color: #fff; border-color: var(--accent);
-    font-size: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+    transform: scale(1.12); box-shadow: 0 2px 9px rgba(0,0,0,0.22);
   }
   .wtab.confirm { background: var(--danger); color: #fff; border-color: var(--danger); }
-  .wtab.renaming { width: auto; min-width: 96px; border-radius: 20px; padding: 0 10px; }
+  .wtab.renaming { aspect-ratio: auto; width: auto; min-width: 96px; height: 34px; border-radius: 17px; padding: 0 10px; color: var(--text); background: var(--surface); }
   .wtab-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* ＋は円にせず記号のみ（浮いて見えない） */
   .wtab-add {
     flex: 0 0 auto; margin-left: 6px;
-    background: var(--surface); border: 1px dashed var(--border); border-radius: 50%;
-    width: 42px; height: 42px; padding: 0; color: var(--text-sub); font-size: 20px;
+    background: none; border: none; color: var(--accent);
+    width: 30px; height: 40px; padding: 0; font-size: 26px; line-height: 1;
   }
   .wtab-input { width: 78px; font-size: 16px; text-align: center; border: none; background: transparent; color: inherit; padding: 0; outline: none; }
   .wl-item-wrap { position: relative; overflow: hidden; border-radius: var(--radius); margin-bottom: 6px; }
@@ -404,12 +419,23 @@
   .scr-form { display: flex; flex-direction: column; gap: 8px; }
   .scr-row { display: grid; grid-template-columns: 84px 1fr 14px 1fr; align-items: center; gap: 8px; }
   .scr-label { font-size: 12px; color: var(--text-sub); white-space: nowrap; }
-  .scr-row input { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; color: var(--text); font-size: 16px; padding: 8px 9px; outline: none; }
+  .scr-row input { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 16px; padding: 11px 9px; outline: none; }
   .scr-row span { color: var(--text-dim); font-size: 12px; text-align: center; }
-  .scr-actions { display: flex; gap: 8px; margin: 8px 0; }
-  .scr-actions > * { flex: 1; }
-  .scr-reshead { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-sub); margin: 2px 2px 8px; }
+  .scr-topbar { display: flex; align-items: center; gap: 10px; margin: 4px 0 8px; padding: 0 12px 0 13px; }
+  .scr-selall { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; padding: 0; min-height: auto; font-size: 12px; color: var(--text-sub); }
+  .scr-selall.on { color: var(--accent); }
+  .scr-selall.on .scr-check { background: var(--accent); border-color: var(--accent); }
+  .scr-regbtn { display: inline-flex; align-items: center; gap: 3px; background: var(--accent); border: none; border-radius: 8px; min-height: 28px; padding: 0 8px; color: #fff; }
+  .scr-regbtn svg { width: 15px; height: 15px; }
+  .scr-regnum { font-size: 12px; font-weight: 700; }
+  .scr-count { flex: 1 1 auto; text-align: right; font-size: 12px; color: var(--text-sub); }
   .scr-limit { display: flex; gap: 4px; }
+  /* ヘッダ固定・リストのみスクロール（セクター/スクリーナー） */
+  #sectorView.active, #screenerView.active { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+  .sector-scroll, .scr-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 24px; }
+  /* 絞り込み条件の下で、全選択バーは上部に貼り付いて一覧だけスクロール */
+  #scrTop { position: sticky; top: 0; z-index: 2; background: var(--bg); padding-top: 4px; }
+  #scrTop:empty { display: none; }
   .scr-limbtn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; min-height: 26px; padding: 0 9px; font-size: 12px; color: var(--text-sub); }
   .scr-limbtn.on { background: var(--accent); color: #fff; border-color: var(--accent); }
   /* 帯サイズ統一（min-height 32 / padding 6px 12px） */
@@ -493,12 +519,12 @@
   }
   .detail-pos { font-size: 12px; color: var(--text-dim); font-weight: 600; }
   .watch-toggle {
-    min-height: 32px; min-width: 40px; padding: 0 10px; border-radius: 9px;
-    font-size: 18px; font-weight: 700;
-    background: var(--surface2); border: 1px solid var(--border);
+    width: 24px; min-width: 24px; height: 24px; min-height: 24px; padding: 0; border-radius: 6px;
+    font-size: 16px; font-weight: 700;
+    background: none; border: 2px solid var(--border); color: var(--text-sub);
     display: inline-flex; align-items: center; justify-content: center;
   }
-  .watch-toggle.added { width: 40px; min-width: 40px; padding: 0; background: var(--up); color: #00210f; border-color: transparent; font-size: 16px; }
+  .watch-toggle.added { background: var(--up); border-color: transparent; color: #00210f; font-size: 14px; }
 
   /* ===== 下部タブバー ===== */
   .tabbar {
@@ -583,12 +609,12 @@
       <h1 class="app-title">Watchlist</h1>
       <button class="board-edit" id="watchSortBtn">⇅ 追加順</button>
     </div>
-    <div class="scroll-area">
+    <div class="watch-tabs-wrap">
+      <div class="watch-tabs" id="watchTabs"></div>
+      <button class="wtab-add" id="wtabAdd" aria-label="リスト追加">＋</button>
+    </div>
+    <div class="watch-scroll fade-bottom" id="watchScroll">
       <div class="pull-refresh" id="pullRefresh"></div>
-      <div class="watch-tabs-wrap">
-        <div class="watch-tabs" id="watchTabs"></div>
-        <button class="wtab-add" id="wtabAdd" aria-label="リスト追加">＋</button>
-      </div>
       <div id="watchListArea"></div>
     </div>
     <button class="fab-refresh" id="screenerBtn" aria-label="スクリーニング">
@@ -706,7 +732,9 @@
       <button class="board-edit" id="sectorSortBtn">⇅ 変化率</button>
     </div>
     <div class="sector-note">業種別ETF（SPDR）の値動き。タップで詳細へ。</div>
-    <div id="sectorList"></div>
+    <div class="sector-scroll fade-bottom" id="sectorScroll">
+      <div id="sectorList"></div>
+    </div>
   </div>
 
   <!-- ====== スクリーニング ====== -->
@@ -716,24 +744,22 @@
       <span class="bubble-title">Screener</span>
       <button class="board-edit" id="screenerRun">検索</button>
     </div>
-    <div class="scr-note">主要米国株から条件で絞り込み。空欄はその条件を無視します。</div>
-    <details class="sec" id="scrFilterSec" open>
-      <summary>絞り込み条件</summary>
-      <div class="sec-body">
-        <div class="scr-form" id="scrForm">
-          <div class="scr-row"><span class="scr-label">株価 $</span><input type="text" inputmode="decimal" data-k="price" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="price" data-b="max" placeholder="上限"></div>
-          <div class="scr-row"><span class="scr-label">時価総額 $B</span><input type="text" inputmode="decimal" data-k="mcap" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="mcap" data-b="max" placeholder="上限"></div>
-          <div class="scr-row"><span class="scr-label">PBR</span><input type="text" inputmode="decimal" data-k="pbr" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="pbr" data-b="max" placeholder="上限"></div>
-          <div class="scr-row"><span class="scr-label">配当利回り %</span><input type="text" inputmode="decimal" data-k="yield" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="yield" data-b="max" placeholder="上限"></div>
-          <div class="scr-row"><span class="scr-label">配当金 $</span><input type="text" inputmode="decimal" data-k="div" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="div" data-b="max" placeholder="上限"></div>
+    <div class="scr-scroll fade-bottom" id="scrScroll">
+      <details class="sec" id="scrFilterSec" open>
+        <summary>絞り込み条件</summary>
+        <div class="sec-body">
+          <div class="scr-form" id="scrForm">
+            <div class="scr-row"><span class="scr-label">株価 $</span><input type="text" inputmode="decimal" data-k="price" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="price" data-b="max" placeholder="上限"></div>
+            <div class="scr-row"><span class="scr-label">時価総額 $B</span><input type="text" inputmode="decimal" data-k="mcap" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="mcap" data-b="max" placeholder="上限"></div>
+            <div class="scr-row"><span class="scr-label">PBR</span><input type="text" inputmode="decimal" data-k="pbr" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="pbr" data-b="max" placeholder="上限"></div>
+            <div class="scr-row"><span class="scr-label">配当利回り %</span><input type="text" inputmode="decimal" data-k="yield" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="yield" data-b="max" placeholder="上限"></div>
+            <div class="scr-row"><span class="scr-label">配当金 $</span><input type="text" inputmode="decimal" data-k="div" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="div" data-b="max" placeholder="上限"></div>
+          </div>
         </div>
-      </div>
-    </details>
-    <div class="scr-actions" id="scrActions" style="display:none;">
-      <button class="btn-ghost btn-sm" id="scrSelectAll">全選択</button>
-      <button class="btn-primary btn-sm" id="scrRegister">選択を登録</button>
+      </details>
+      <div id="scrTop"></div>
+      <div id="scrResults"></div>
     </div>
-    <div id="scrResults"></div>
   </div>
 
   <!-- ====== リスト選択シート ====== -->
@@ -815,16 +841,43 @@ function deleteWatchTab(id) {
   if (getActiveTabId() === id) setActiveTabId(tabs[0].id);
   renderWatchlist();
 }
+const TAB_ICONS = [
+  '<polygon points="12 3 14.5 9 21 9.3 16 13.5 17.5 20 12 16.3 6.5 20 8 13.5 3 9.3 9.5 9"/>',
+  '<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5.5-7 10-7 10z"/>',
+  '<circle cx="12" cy="12" r="8"/>',
+  '<rect x="5" y="5" width="14" height="14" rx="2"/>',
+  '<polygon points="12 4 20 19 4 19"/>',
+  '<polygon points="12 3 20 12 12 21 4 12"/>',
+  '<polygon points="13 3 5 13 11 13 10 21 19 10 13 10"/>',
+  '<path d="M12 3c3 4 5 6 5 9a5 5 0 0 1-10 0c0-2 1-3 2-4 0 1 1 2 2 2 0-3 1-5 1-7z"/>',
+  '<path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  '<path d="M6 3h12v18l-6-4-6 4z"/>',
+  '<path d="M20 12l-8 8-8-8V4h8z"/><circle cx="7.5" cy="7.5" r="1.2"/>',
+  '<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c3 3 3 13 0 16M12 4c-3 3-3 13 0 16"/>',
+  '<path d="M9 15l-3-3c3-8 8-9 12-9 0 4-1 9-9 12z"/><path d="M6 15c-1 2 0 3 0 3s1-1 3 0"/><circle cx="14" cy="10" r="1.3"/>',
+  '<path d="M12 3l7 3v5c0 5-4 8-7 10-3-2-7-5-7-10V6z"/>',
+  '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>',
+  '<path d="M12 21s-6-5-6-10a6 6 0 0 1 12 0c0 5-6 10-6 10z"/><circle cx="12" cy="11" r="2"/>',
+  '<path d="M5 19c0-8 6-14 14-14 0 8-6 14-14 14z"/><path d="M5 19c4-4 7-6 10-7"/>',
+  '<path d="M21 13a8 8 0 1 1-10-10 6 6 0 0 0 10 10z"/>',
+  '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/>',
+  '<path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18"/>',
+  '<path d="M6 4v16"/><path d="M6 5h11l-2 3 2 3H6"/>',
+  '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
+  '<line x1="6" y1="20" x2="6" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="18" y1="20" x2="18" y2="14"/>',
+  '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>'
+];
 let tabConfirmDelId = null;
 let tabLongTimer = null;
 function renderWatchTabs() {
   const el = $("#watchTabs"); if (!el) return;
   const tabs = getTabs(); const active = getActiveTabId();
   let html = "";
-  tabs.forEach((t) => {
+  tabs.forEach((t, i) => {
     const del = t.id === tabConfirmDelId;
-    const initials = (t.name || "").slice(0, 2);
-    html += `<button class="wtab ${t.id === active ? "active" : ""}${del ? " confirm" : ""}" data-tabid="${escapeAttr(t.id)}" data-name="${escapeAttr(t.name)}">${del ? "×" : `<span class="wtab-label">${escapeHtml(initials)}</span>`}</button>`;
+    const icon = TAB_ICONS[i % TAB_ICONS.length];
+    const inner = del ? "×" : `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon}</svg>`;
+    html += `<button class="wtab ${t.id === active ? "active" : ""}${del ? " confirm" : ""}" data-tabid="${escapeAttr(t.id)}" data-name="${escapeAttr(t.name)}">${inner}</button>`;
   });
   el.innerHTML = html;
   el.querySelectorAll(".wtab").forEach((b) => {
@@ -1259,6 +1312,15 @@ function pickResult(symbol, name) {
 
 /* 詳細 */
 let currentSymbol = null;
+const detailCache = {};   // 個別銘柄データを更新まで保持
+function clearDataCaches() {
+  for (const k in detailCache) delete detailCache[k];
+  if (typeof bubbleCache === "object") for (const k in bubbleCache) delete bubbleCache[k];
+  if (typeof screenCache === "object") for (const k in screenCache) delete screenCache[k];
+  if (typeof earningsCache === "object") for (const k in earningsCache) delete earningsCache[k];
+  if (typeof divCache === "object") for (const k in divCache) delete divCache[k];
+  if (typeof sectorQuotes !== "undefined") sectorQuotes = {};
+}
 let detailNavList = [];   // 詳細スワイプで前後移動する銘柄の並び（ウォッチ順）
 function detailIdx() { return currentSymbol ? detailNavList.indexOf(currentSymbol) : -1; }
 function canPrev() { return detailIdx() > 0; }
@@ -1284,8 +1346,11 @@ async function openDetail(symbol, navList) {
   view.classList.add("active");
   body.innerHTML = loadingHtml("読み込み中…");
   updateWatchToggle();
-  try { renderDetail(symbol, await fetchDetail(symbol)); }
-  catch (err) { body.innerHTML = statusHtml("error", "⚠️", errorMessage(err)); }
+  try {
+    let data = detailCache[symbol];
+    if (!data) { data = await fetchDetail(symbol); detailCache[symbol] = data; }
+    renderDetail(symbol, data);
+  } catch (err) { body.innerHTML = statusHtml("error", "⚠️", errorMessage(err)); }
 }
 function renderDetail(symbol, data) {
   const { quote, profile, metric, news } = data;
@@ -1642,8 +1707,9 @@ $("#watchToggle").addEventListener("touchend", () => clearTimeout(wtLongTimer));
 /* プルダウン更新（更新ボタンの代わり） */
 (function attachPullRefresh() {
   const ind = $("#pullRefresh");
+  const sc = () => $("#watchScroll");
   let startY = 0, pulling = false, dist = 0;
-  const atTop = () => currentTab() === "watch" && window.scrollY <= 0 &&
+  const atTop = () => currentTab() === "watch" && sc() && sc().scrollTop <= 0 &&
     !$("#detailView").classList.contains("active") && !$("#bubbleView").classList.contains("active") &&
     !$("#sectorView").classList.contains("active") && !$("#screenerView").classList.contains("active");
   document.addEventListener("touchstart", (e) => {
@@ -1653,14 +1719,14 @@ $("#watchToggle").addEventListener("touchend", () => clearTimeout(wtLongTimer));
   document.addEventListener("touchmove", (e) => {
     if (!pulling) return;
     dist = e.touches[0].clientY - startY;
-    if (dist > 0 && window.scrollY <= 0) {
+    if (dist > 0 && sc() && sc().scrollTop <= 0) {
       ind.style.height = Math.min(dist, 80) + "px"; ind.style.opacity = Math.min(1, dist / 70);
       ind.textContent = dist > 70 ? "離して更新" : "↓ 引っ張って更新";
     } else { pulling = false; ind.style.height = "0"; ind.style.opacity = "0"; }
   }, { passive: true });
   document.addEventListener("touchend", () => {
     if (!pulling) return; pulling = false;
-    if (dist > 70) { ind.style.height = "30px"; ind.textContent = "更新中…"; renderWatchlist().finally(() => { ind.style.height = "0"; ind.style.opacity = "0"; }); }
+    if (dist > 70) { ind.style.height = "30px"; ind.textContent = "更新中…"; clearDataCaches(); renderWatchlist().finally(() => { ind.style.height = "0"; ind.style.opacity = "0"; }); }
     else { ind.style.height = "0"; ind.style.opacity = "0"; }
   }, { passive: true });
 })();
@@ -1794,7 +1860,7 @@ $("#yAxisSelect").addEventListener("change", () => { saveBubbleAxes(); renderBub
    セクター動向ページ（業種別SPDR ETFの値動き）
    ======================================================================== */
 const SECTOR_ETFS = [
-  { sym: "SPY",  name: "S&P500（市場全体）" },
+  { sym: "SPY",  name: "S&P500" },
   { sym: "XLK",  name: "テクノロジー" },
   { sym: "XLC",  name: "通信サービス" },
   { sym: "XLY",  name: "一般消費財" },
@@ -1918,7 +1984,7 @@ function passScr(d, c) {
     && chk(d.div, c.div_min, c.div_max);
 }
 let screenResults = [];
-let screenLimit = 20;
+let screenLimit = 25;
 const screenSel = new Set();
 function openScreener() {
   if (!getApiKey()) { toast("APIキーが未設定です"); return; }
@@ -1930,7 +1996,6 @@ async function runScreen() {
   const c = readScrCriteria();
   const res = $("#scrResults");
   res.innerHTML = loadingHtml("検索中…（初回は取得に少し時間がかかります）");
-  $("#scrActions").style.display = "none";
   const data = [];
   try {
     await runLimited(SCREEN_UNIVERSE, 6, async (sym) => { data.push(await fetchScreenData(sym)); });
@@ -1940,19 +2005,49 @@ async function runScreen() {
   const fs = $("#scrFilterSec"); if (fs) fs.open = false;   // 検索後は条件を畳んで結果を広く
   renderScreenResults();
 }
+function buildScrTop() {
+  const top = $("#scrTop"); if (!top) return;
+  if (screenResults.length === 0) { top.innerHTML = ""; return; }
+  const shown = screenResults.slice(0, screenLimit);
+  const allSel = shown.length > 0 && shown.every((d) => screenSel.has(d.ticker));
+  const limitBtns = [25, 50].map((n) => `<button class="scr-limbtn ${screenLimit === n ? "on" : ""}" data-lim="${n}">${n}</button>`).join("");
+  top.innerHTML = `<div class="scr-topbar">
+      <button class="scr-selall ${allSel ? "on" : ""}" id="scrSelAll"><span class="scr-check">${allSel ? "✓" : ""}</span>全選択</button>
+      <button class="scr-regbtn" id="scrReg" aria-label="選択を登録">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11v18l-5.5-3.5L5 21z"></path><line x1="20" y1="6" x2="20" y2="12"></line><line x1="17" y1="9" x2="23" y2="9"></line></svg>
+        <span class="scr-regnum">${screenSel.size}</span>
+      </button>
+      <span class="scr-count">${screenResults.length}件</span>
+      <span class="scr-limit">${limitBtns}</span>
+    </div>`;
+  top.querySelectorAll(".scr-limbtn").forEach((b) => {
+    b.onclick = () => { screenLimit = parseInt(b.dataset.lim, 10); renderScreenResults(); };
+  });
+  $("#scrSelAll").onclick = () => {
+    const sh = screenResults.slice(0, screenLimit);
+    const all = sh.length > 0 && sh.every((d) => screenSel.has(d.ticker));
+    if (all) sh.forEach((d) => screenSel.delete(d.ticker)); else sh.forEach((d) => screenSel.add(d.ticker));
+    renderScreenResults();
+  };
+  $("#scrReg").onclick = () => {
+    if (screenSel.size === 0) { toast("登録する銘柄を選んでください"); return; }
+    pickList((tabId) => {
+      let n = 0; screenSel.forEach((s) => { if (addSymbolToTab(s, tabId, "")) n++; });
+      const tn = (getTabs().find((t) => t.id === tabId) || {}).name || "";
+      toast(n + "件を「" + tn + "」に登録しました");
+      screenSel.clear(); renderScreenResults();
+    }, "登録先リストを選択");
+  };
+}
 function renderScreenResults() {
   const res = $("#scrResults");
+  buildScrTop();
   if (screenResults.length === 0) {
     res.innerHTML = statusHtml("", "🔍", "条件に合う銘柄がありませんでした。条件をゆるめてください。");
-    $("#scrActions").style.display = "none";
     return;
   }
-  $("#scrActions").style.display = "flex";
   const shown = screenResults.slice(0, screenLimit);
-  const selShown = shown.filter((d) => screenSel.has(d.ticker)).length;
-  $("#scrSelectAll").textContent = (selShown === shown.length) ? "全解除" : "全選択";
-  const limitBtns = [10, 20, 50].map((n) => `<button class="scr-limbtn ${screenLimit === n ? "on" : ""}" data-lim="${n}">${n}</button>`).join("");
-  res.innerHTML = `<div class="scr-reshead"><span>${screenResults.length}件ヒット（表示${shown.length}）</span><span class="scr-limit">${limitBtns}</span></div>` + shown.map((d) => {
+  res.innerHTML = shown.map((d) => {
     const sel = screenSel.has(d.ticker);
     const meta = `${d.price != null ? "$" + fmtNum(d.price, 2) : "—"}・${d.mcap ? fmtMarketCap(d.mcap) : "—"}・PBR ${fmtNum(d.pbr, 1)}・利回り ${d.yield != null ? fmtNum(d.yield, 1) + "%" : "—"}`;
     return `<div class="scr-row2 ${sel ? "sel" : ""}" data-symbol="${escapeAttr(d.ticker)}">
@@ -1963,31 +2058,17 @@ function renderScreenResults() {
       </div>`;
   }).join("");
   res.querySelectorAll(".scr-row2").forEach((r) => {
-    r.onclick = () => { const s = r.dataset.symbol; if (screenSel.has(s)) screenSel.delete(s); else screenSel.add(s); renderScreenResults(); };
-  });
-  res.querySelectorAll(".scr-limbtn").forEach((b) => {
-    b.onclick = () => { screenLimit = parseInt(b.dataset.lim, 10); renderScreenResults(); };
+    r.onclick = () => {
+      const s = r.dataset.symbol;
+      if (screenSel.has(s)) screenSel.delete(s); else screenSel.add(s);
+      r.classList.toggle("sel", screenSel.has(s));
+      r.querySelector(".scr-check").textContent = screenSel.has(s) ? "✓" : "";
+      buildScrTop();   // トップのみ更新（一覧のスクロール位置を維持）
+    };
   });
 }
 $("#screenerRun").addEventListener("click", runScreen);
 $("#screenerBack").addEventListener("click", closeScreener);
-$("#scrSelectAll").addEventListener("click", () => {
-  const shown = screenResults.slice(0, screenLimit);
-  const allSel = shown.length > 0 && shown.every((d) => screenSel.has(d.ticker));
-  if (allSel) shown.forEach((d) => screenSel.delete(d.ticker));
-  else shown.forEach((d) => screenSel.add(d.ticker));
-  renderScreenResults();
-});
-$("#scrRegister").addEventListener("click", () => {
-  if (screenSel.size === 0) { toast("登録する銘柄を選んでください"); return; }
-  pickList((tabId) => {
-    let n = 0;
-    screenSel.forEach((s) => { if (addSymbolToTab(s, tabId, "")) n++; });
-    const tn = (getTabs().find((t) => t.id === tabId) || {}).name || "";
-    toast(n + "件を「" + tn + "」に登録しました");
-    screenSel.clear(); renderScreenResults();
-  }, "登録先リストを選択");
-});
 (function attachScreenerSwipe() {
   const view = $("#screenerView");
   let sx = 0, sy = 0, tracking = false, decided = false, horiz = false;
