@@ -298,6 +298,36 @@
 
   /* ===== ウォッチリスト ===== */
   #page-watch .scroll-area { padding-bottom: 88px; }
+  /* ウォッチのタブ（手帳インデックス風・最上部銘柄の上） */
+  .watch-tabs-wrap { display: flex; align-items: center; margin-bottom: 10px; }
+  .watch-tabs {
+    flex: 1 1 auto; min-width: 0;
+    display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; align-items: center; padding: 3px 2px;
+  }
+  .watch-tabs::-webkit-scrollbar { display: none; }
+  /* 円形タブ（選択中のみ少し拡大） */
+  .wtab {
+    flex: 0 0 auto; width: 42px; height: 42px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 50%;
+    font-size: 13px; font-weight: 700; color: var(--text-sub);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+    transition: width 0.18s ease, height 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .wtab.active {
+    width: 52px; height: 52px;
+    background: var(--accent); color: #fff; border-color: var(--accent);
+    font-size: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+  }
+  .wtab.confirm { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .wtab.renaming { width: auto; min-width: 96px; border-radius: 20px; padding: 0 10px; }
+  .wtab-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wtab-add {
+    flex: 0 0 auto; margin-left: 6px;
+    background: var(--surface); border: 1px dashed var(--border); border-radius: 50%;
+    width: 42px; height: 42px; padding: 0; color: var(--text-sub); font-size: 20px;
+  }
+  .wtab-input { width: 78px; font-size: 16px; text-align: center; border: none; background: transparent; color: inherit; padding: 0; outline: none; }
   .wl-item-wrap { position: relative; overflow: hidden; border-radius: var(--radius); margin-bottom: 6px; }
   .wl-dividend {
     position: absolute; top: 0; right: 0; bottom: 0; width: 112px;
@@ -341,6 +371,74 @@
     box-shadow: 0 4px 14px rgba(0,0,0,0.5); z-index: 30;
   }
   .fab-bubble svg { width: 18px; height: 18px; }
+  .fab-sector {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: calc(var(--tabbar) + var(--safe-bottom) + 14px);
+    width: 32px; height: 32px; min-height: 32px; padding: 0;
+    border-radius: 50%; background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5); z-index: 30;
+  }
+  .fab-sector svg { width: 18px; height: 18px; }
+  /* セクター動向リスト */
+  .sector-note { font-size: 12px; color: var(--text-sub); margin: 4px 2px 10px; }
+  .sector-row {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 6px 12px; min-height: 32px; margin-bottom: 6px;
+  }
+  .sector-name { font-size: 14px; font-weight: 700; flex: 0 0 auto; }
+  .sector-tk { font-size: 11px; color: var(--text-dim); flex: 0 0 auto; }
+  .sector-sp { flex: 1 1 auto; }
+  .sector-price { font-size: 14px; font-weight: 700; flex: 0 0 auto; }
+  .sector-chg { font-size: 12px; font-weight: 600; min-width: 60px; text-align: right; flex: 0 0 auto; }
+
+  /* プルダウン更新インジケータ */
+  .pull-refresh {
+    height: 0; overflow: hidden; text-align: center; color: var(--text-sub);
+    font-size: 12px; line-height: 30px; transition: height 0.15s ease, opacity 0.15s ease; opacity: 0;
+  }
+
+  /* スクリーニング */
+  .scr-note { font-size: 12px; color: var(--text-sub); margin: 4px 2px 10px; }
+  .scr-form { display: flex; flex-direction: column; gap: 8px; }
+  .scr-row { display: grid; grid-template-columns: 84px 1fr 14px 1fr; align-items: center; gap: 8px; }
+  .scr-label { font-size: 12px; color: var(--text-sub); white-space: nowrap; }
+  .scr-row input { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; color: var(--text); font-size: 16px; padding: 8px 9px; outline: none; }
+  .scr-row span { color: var(--text-dim); font-size: 12px; text-align: center; }
+  .scr-actions { display: flex; gap: 8px; margin: 8px 0; }
+  .scr-actions > * { flex: 1; }
+  .scr-reshead { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-sub); margin: 2px 2px 8px; }
+  .scr-limit { display: flex; gap: 4px; }
+  .scr-limbtn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; min-height: 26px; padding: 0 9px; font-size: 12px; color: var(--text-sub); }
+  .scr-limbtn.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  /* 帯サイズ統一（min-height 32 / padding 6px 12px） */
+  .scr-row2 { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 12px; min-height: 32px; margin-bottom: 6px; }
+  .scr-check { flex: 0 0 auto; width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; }
+  .scr-row2.sel .scr-check { background: var(--accent); border-color: var(--accent); }
+  .scr-sym { font-size: 14px; font-weight: 700; flex: 0 0 auto; }
+  .scr-meta { font-size: 11px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .scr-sp { flex: 1 1 auto; }
+  .scr-val { font-size: 12px; color: var(--text-sub); flex: 0 0 auto; }
+
+  /* リスト選択シート */
+  .sheet-mask {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 60;
+    display: none; align-items: flex-end;
+  }
+  .sheet-mask.open { display: flex; }
+  .sheet {
+    width: 100%; background: var(--bg); border-radius: 18px 18px 0 0;
+    padding: 14px 16px calc(20px + var(--safe-bottom)); border-top: 1px solid var(--border);
+  }
+  .sheet-title { font-size: 14px; font-weight: 700; text-align: center; margin-bottom: 12px; }
+  .sheet-item {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 8px; font-size: 15px; font-weight: 600; color: var(--text);
+  }
+  .sheet-count { font-size: 12px; color: var(--text-dim); font-weight: 400; }
+  .sheet-cancel { width: 100%; background: var(--surface2); border: none; border-radius: 12px; padding: 12px; font-size: 14px; color: var(--text-sub); margin-top: 4px; }
 
   /* ===== 探索マップ（バブルチャート） ===== */
   .bubble-title { font-size: 16px; font-weight: 700; }
@@ -364,6 +462,16 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.4); opacity: 0.92;
   }
   .bubble span { pointer-events: none; text-shadow: 0 1px 2px rgba(0,0,0,0.7); }
+  /* バブル背景の薄いスケール＋軸ラベル（重ねるのでサイズ不変） */
+  .bubble-grid {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0.6;
+    background-image: linear-gradient(to right, var(--track) 1px, transparent 1px), linear-gradient(to bottom, var(--track) 1px, transparent 1px);
+    background-size: 25% 25%;
+  }
+  .bubble-axis { position: absolute; font-size: 10px; color: var(--text-dim); pointer-events: none; background: var(--glass); padding: 0 3px; border-radius: 3px; }
+  .bubble-axname { position: absolute; font-size: 11px; font-weight: 700; color: var(--text-sub); pointer-events: none; }
+  .bubble-axname.bx-name { bottom: 2px; left: 50%; transform: translateX(-50%); }
+  .bubble-axname.by-name { top: 3px; left: 6px; }
   .bubble-note { font-size: 12px; color: var(--text-sub); line-height: 1.5; margin: 10px 2px 0; }
 
   /* ===== 詳細画面 ===== */
@@ -373,6 +481,7 @@
     display: none; padding: 0 16px calc(30px + var(--safe-bottom));
   }
   .detail.active { display: block; }
+  .detail-inner { min-height: 100%; will-change: transform; }
   .detail-bar {
     position: sticky; top: 0; background: var(--bg);
     padding-top: calc(var(--safe-top) + 8px); padding-bottom: 8px;
@@ -384,11 +493,12 @@
   }
   .detail-pos { font-size: 12px; color: var(--text-dim); font-weight: 600; }
   .watch-toggle {
-    min-height: 32px; padding: 0 12px; border-radius: 9px;
-    font-size: 13px; font-weight: 600;
+    min-height: 32px; min-width: 40px; padding: 0 10px; border-radius: 9px;
+    font-size: 18px; font-weight: 700;
     background: var(--surface2); border: 1px solid var(--border);
+    display: inline-flex; align-items: center; justify-content: center;
   }
-  .watch-toggle.added { width: 32px; min-width: 32px; padding: 0; background: var(--up); color: #00210f; border-color: transparent; font-size: 16px; }
+  .watch-toggle.added { width: 40px; min-width: 40px; padding: 0; background: var(--up); color: #00210f; border-color: transparent; font-size: 16px; }
 
   /* ===== 下部タブバー ===== */
   .tabbar {
@@ -470,20 +580,30 @@
   <!-- ====== ウォッチリストタブ ====== -->
   <section class="page page-pad-top" id="page-watch">
     <div class="search-top">
-      <h1 class="app-title">ウォッチリスト</h1>
+      <h1 class="app-title">Watchlist</h1>
       <button class="board-edit" id="watchSortBtn">⇅ 追加順</button>
     </div>
     <div class="scroll-area">
+      <div class="pull-refresh" id="pullRefresh"></div>
+      <div class="watch-tabs-wrap">
+        <div class="watch-tabs" id="watchTabs"></div>
+        <button class="wtab-add" id="wtabAdd" aria-label="リスト追加">＋</button>
+      </div>
       <div id="watchListArea"></div>
     </div>
-    <button class="fab-refresh" id="refreshBtn" aria-label="価格を更新">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 12a9 9 0 1 1-2.64-6.36"></path><polyline points="21 3 21 9 15 9"></polyline>
+    <button class="fab-refresh" id="screenerBtn" aria-label="スクリーニング">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="3 4 21 4 14 12.5 14 19 10 21 10 12.5"></polygon>
       </svg>
     </button>
     <button class="fab-bubble" id="bubbleBtn" aria-label="探索マップ">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round">
         <circle cx="8" cy="14" r="4"></circle><circle cx="16.5" cy="8.5" r="2.6"></circle><circle cx="17.5" cy="16.5" r="1.6"></circle>
+      </svg>
+    </button>
+    <button class="fab-sector" id="sectorBtn" aria-label="セクター動向">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="6" y1="20" x2="6" y2="12"></line><line x1="12" y1="20" x2="12" y2="6"></line><line x1="18" y1="20" x2="18" y2="15"></line>
       </svg>
     </button>
   </section>
@@ -539,19 +659,21 @@
 
   <!-- ====== 詳細オーバーレイ ====== -->
   <div class="detail" id="detailView">
-    <div class="detail-bar">
-      <button class="back" id="detailBack">‹</button>
-      <span class="detail-pos" id="detailPos"></span>
-      <button class="watch-toggle" id="watchToggle">＋ 追加</button>
+    <div class="detail-inner" id="detailInner">
+      <div class="detail-bar">
+        <button class="back" id="detailBack">‹</button>
+        <span class="detail-pos" id="detailPos"></span>
+        <button class="watch-toggle" id="watchToggle">＋</button>
+      </div>
+      <div id="detailBody"></div>
     </div>
-    <div id="detailBody"></div>
   </div>
 
   <!-- ====== 探索マップ（バブルチャート） ====== -->
   <div class="detail" id="bubbleView">
     <div class="detail-bar">
       <button class="back" id="bubbleBack">‹</button>
-      <span class="bubble-title">探索マップ</span>
+      <span class="bubble-title">Bubble Chart</span>
       <span style="min-width:40px;"></span>
     </div>
     <div class="axis-controls">
@@ -576,6 +698,53 @@
     <div class="bubble-note" id="bubbleNote"></div>
   </div>
 
+  <!-- ====== セクター動向ページ ====== -->
+  <div class="detail" id="sectorView">
+    <div class="detail-bar">
+      <button class="back" id="sectorBack">‹</button>
+      <span class="bubble-title">Sector</span>
+      <button class="board-edit" id="sectorSortBtn">⇅ 変化率</button>
+    </div>
+    <div class="sector-note">業種別ETF（SPDR）の値動き。タップで詳細へ。</div>
+    <div id="sectorList"></div>
+  </div>
+
+  <!-- ====== スクリーニング ====== -->
+  <div class="detail" id="screenerView">
+    <div class="detail-bar">
+      <button class="back" id="screenerBack">‹</button>
+      <span class="bubble-title">Screener</span>
+      <button class="board-edit" id="screenerRun">検索</button>
+    </div>
+    <div class="scr-note">主要米国株から条件で絞り込み。空欄はその条件を無視します。</div>
+    <details class="sec" id="scrFilterSec" open>
+      <summary>絞り込み条件</summary>
+      <div class="sec-body">
+        <div class="scr-form" id="scrForm">
+          <div class="scr-row"><span class="scr-label">株価 $</span><input type="text" inputmode="decimal" data-k="price" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="price" data-b="max" placeholder="上限"></div>
+          <div class="scr-row"><span class="scr-label">時価総額 $B</span><input type="text" inputmode="decimal" data-k="mcap" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="mcap" data-b="max" placeholder="上限"></div>
+          <div class="scr-row"><span class="scr-label">PBR</span><input type="text" inputmode="decimal" data-k="pbr" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="pbr" data-b="max" placeholder="上限"></div>
+          <div class="scr-row"><span class="scr-label">配当利回り %</span><input type="text" inputmode="decimal" data-k="yield" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="yield" data-b="max" placeholder="上限"></div>
+          <div class="scr-row"><span class="scr-label">配当金 $</span><input type="text" inputmode="decimal" data-k="div" data-b="min" placeholder="下限"><span>〜</span><input type="text" inputmode="decimal" data-k="div" data-b="max" placeholder="上限"></div>
+        </div>
+      </div>
+    </details>
+    <div class="scr-actions" id="scrActions" style="display:none;">
+      <button class="btn-ghost btn-sm" id="scrSelectAll">全選択</button>
+      <button class="btn-primary btn-sm" id="scrRegister">選択を登録</button>
+    </div>
+    <div id="scrResults"></div>
+  </div>
+
+  <!-- ====== リスト選択シート ====== -->
+  <div class="sheet-mask" id="listPickerMask">
+    <div class="sheet" id="listPicker">
+      <div class="sheet-title" id="listPickerTitle">どのリストに追加？</div>
+      <div id="listPickerBody"></div>
+      <button class="sheet-cancel" id="listPickerCancel">キャンセル</button>
+    </div>
+  </div>
+
   <!-- ====== 下部タブバー ====== -->
   <nav class="tabbar">
     <button class="active" data-tab="search">
@@ -596,7 +765,9 @@
 "use strict";
 const API_BASE = "https://finnhub.io/api/v1";
 const LS_KEY  = "finnhub_api_key";
-const LS_WATCH = "stock_watchlist";
+const LS_WATCH = "stock_watchlist";        // 旧単一リスト（タブへ移行する元データ）
+const LS_TABS = "watchlist_tabs";
+const LS_ACTIVE_TAB = "watchlist_active";
 const LS_HOME = "home_indicators_v3";
 const LS_HISTORY = "search_history";
 
@@ -606,8 +777,93 @@ const $$ = (sel) => document.querySelectorAll(sel);
 function getApiKey() { return localStorage.getItem(LS_KEY) || ""; }
 function setApiKey(k) { localStorage.setItem(LS_KEY, k); }
 function removeApiKey() { localStorage.removeItem(LS_KEY); }
-function getWatchlist() { try { return JSON.parse(localStorage.getItem(LS_WATCH)) || []; } catch (e) { return []; } }
-function setWatchlist(list) { localStorage.setItem(LS_WATCH, JSON.stringify(list)); }
+/* ---- タブ式ウォッチリスト ---- */
+function getTabs() {
+  try { const v = JSON.parse(localStorage.getItem(LS_TABS)); if (Array.isArray(v) && v.length) return v; } catch (e) {}
+  let old = [];
+  try { old = JSON.parse(localStorage.getItem(LS_WATCH)) || []; } catch (e) {}
+  const tabs = [{ id: "t" + Date.now(), name: "リスト1", items: Array.isArray(old) ? old : [] }];
+  localStorage.setItem(LS_TABS, JSON.stringify(tabs));
+  return tabs;
+}
+function setTabs(tabs) { localStorage.setItem(LS_TABS, JSON.stringify(tabs)); }
+function getActiveTabId() {
+  const tabs = getTabs();
+  let id = localStorage.getItem(LS_ACTIVE_TAB);
+  if (!id || !tabs.some((t) => t.id === id)) { id = tabs[0].id; localStorage.setItem(LS_ACTIVE_TAB, id); }
+  return id;
+}
+function setActiveTabId(id) { localStorage.setItem(LS_ACTIVE_TAB, id); }
+function getWatchlist() { const tabs = getTabs(); const t = tabs.find((x) => x.id === getActiveTabId()) || tabs[0]; return t.items || []; }
+function setWatchlist(list) { const tabs = getTabs(); const t = tabs.find((x) => x.id === getActiveTabId()) || tabs[0]; t.items = list; setTabs(tabs); }
+function addWatchTab() {
+  const tabs = getTabs();
+  const id = "t" + Date.now();
+  tabs.push({ id, name: "リスト" + (tabs.length + 1), items: [] });
+  setTabs(tabs); setActiveTabId(id); renderWatchlist();
+}
+function renameWatchTab(id, name) {
+  const tabs = getTabs(); const t = tabs.find((x) => x.id === id);
+  if (t) { t.name = (name || "").trim() || t.name; setTabs(tabs); }
+  renderWatchTabs();
+}
+function deleteWatchTab(id) {
+  let tabs = getTabs();
+  if (tabs.length <= 1) { toast("最後のリストは削除できません"); renderWatchTabs(); return; }
+  tabs = tabs.filter((x) => x.id !== id);
+  setTabs(tabs);
+  if (getActiveTabId() === id) setActiveTabId(tabs[0].id);
+  renderWatchlist();
+}
+let tabConfirmDelId = null;
+let tabLongTimer = null;
+function renderWatchTabs() {
+  const el = $("#watchTabs"); if (!el) return;
+  const tabs = getTabs(); const active = getActiveTabId();
+  let html = "";
+  tabs.forEach((t) => {
+    const del = t.id === tabConfirmDelId;
+    const initials = (t.name || "").slice(0, 2);
+    html += `<button class="wtab ${t.id === active ? "active" : ""}${del ? " confirm" : ""}" data-tabid="${escapeAttr(t.id)}" data-name="${escapeAttr(t.name)}">${del ? "×" : `<span class="wtab-label">${escapeHtml(initials)}</span>`}</button>`;
+  });
+  el.innerHTML = html;
+  el.querySelectorAll(".wtab").forEach((b) => {
+    const id = b.dataset.tabid;
+    b.addEventListener("click", () => {
+      if (tabConfirmDelId === id) { tabConfirmDelId = null; deleteWatchTab(id); return; }  // 確認中→削除実行
+      if (tabConfirmDelId) { tabConfirmDelId = null; renderWatchTabs(); return; }           // 他をタップ→確認解除
+      if (id === getActiveTabId()) startRenameTab(b, id);                                    // アクティブ再タップ→リネーム
+      else { setActiveTabId(id); renderWatchlist(); }                                        // 切替
+    });
+    b.addEventListener("touchstart", () => {                                                 // 長押し→削除確認
+      clearTimeout(tabLongTimer);
+      tabLongTimer = setTimeout(() => {
+        if (getTabs().length <= 1) { toast("最後のリストは削除できません"); return; }
+        tabConfirmDelId = id;
+        suppressClickUntil = Date.now() + 500;   // 長押し離した瞬間の誤タップ防止
+        renderWatchTabs();
+        if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
+        setTimeout(() => { if (tabConfirmDelId === id) { tabConfirmDelId = null; renderWatchTabs(); } }, 3500);
+      }, 500);
+    }, { passive: true });
+    b.addEventListener("touchmove", () => clearTimeout(tabLongTimer), { passive: true });
+    b.addEventListener("touchend", () => clearTimeout(tabLongTimer));
+    b.addEventListener("touchcancel", () => clearTimeout(tabLongTimer));
+  });
+  $("#wtabAdd").onclick = addWatchTab;
+}
+function startRenameTab(btn, id) {
+  if (btn.querySelector("input")) return;
+  const cur = btn.dataset.name || "";
+  btn.classList.add("renaming");
+  btn.innerHTML = `<input class="wtab-input" type="text" value="${escapeAttr(cur)}" maxlength="16">`;
+  const inp = btn.querySelector(".wtab-input");
+  inp.focus(); inp.select();
+  let done = false;
+  const commit = () => { if (done) return; done = true; renameWatchTab(id, inp.value); };
+  inp.addEventListener("keydown", (e) => { if (e.key === "Enter") commit(); });
+  inp.addEventListener("blur", () => setTimeout(commit, 150));
+}
 function getHome() {
   try { const v = JSON.parse(localStorage.getItem(LS_HOME)); if (Array.isArray(v)) return v; } catch (e) {}
   return [];   // 既定は空（「編集」から好きな銘柄を追加）
@@ -772,7 +1028,7 @@ document.addEventListener("click", (e) => {
   const order = ["search", "watch", "settings"];
   let sx = 0, sy = 0, tracking = false, skip = false, maxDy = 0;
   document.addEventListener("touchstart", (e) => {
-    if (e.touches.length > 1 || homeEditMode || $("#detailView").classList.contains("active") || $("#bubbleView").classList.contains("active")) { tracking = false; return; }
+    if (e.touches.length > 1 || homeEditMode || $("#detailView").classList.contains("active") || $("#bubbleView").classList.contains("active") || $("#sectorView").classList.contains("active") || $("#screenerView").classList.contains("active")) { tracking = false; return; }
     sx = e.touches[0].clientX; sy = e.touches[0].clientY; maxDy = 0; tracking = true;
     skip = !!e.target.closest(".wl-item, .search-suggest, input, textarea, button, a");
   }, { passive: true });
@@ -1021,7 +1277,8 @@ async function openDetail(symbol, navList) {
   detailNavList = Array.isArray(navList) ? navList : [];
   currentSymbol = symbol;
   updateDetailPos();
-  const view = $("#detailView"), body = $("#detailBody");
+  const view = $("#detailView"), body = $("#detailBody"), inner = $("#detailInner");
+  if (inner) { inner.style.transition = ""; inner.style.transform = ""; }
   view.style.transition = ""; view.style.transform = "";
   view.scrollTop = 0;
   view.classList.add("active");
@@ -1208,10 +1465,10 @@ function marketCapCircleBg(millionUSD) {
 
 
 function closeDetail() {
-  const view = $("#detailView");
+  const view = $("#detailView"), inner = $("#detailInner");
   view.classList.remove("active");
-  view.style.transform = "";
-  view.style.transition = "";
+  view.style.transform = ""; view.style.transition = "";
+  if (inner) { inner.style.transition = ""; inner.style.transform = ""; }
   currentSymbol = null;
 }
 $("#detailBack").addEventListener("click", closeDetail);
@@ -1219,11 +1476,14 @@ $("#detailBack").addEventListener("click", closeDetail);
 /* 詳細を右スワイプで戻る */
 (function attachDetailSwipe() {
   const view = $("#detailView");
-  let sx = 0, sy = 0, dragging = false, decided = false, horiz = false;
+  const EDGE = 36;   // 左端バック判定幅（Safariタブの最左端はOS側が先取りするため少し内側）
+  let sx = 0, sy = 0, dragging = false, decided = false, horiz = false, edge = false;
+  const innerEl = () => $("#detailInner");
   view.addEventListener("touchstart", (e) => {
     if (e.touches.length > 1) { dragging = false; return; }
     sx = e.touches[0].clientX; sy = e.touches[0].clientY;
     dragging = true; decided = false; horiz = false;
+    edge = sx <= EDGE;                      // 左端から開始＝戻る操作
   }, { passive: true });
   view.addEventListener("touchmove", (e) => {
     if (!dragging) return;
@@ -1231,24 +1491,31 @@ $("#detailBack").addEventListener("click", closeDetail);
     if (!decided) { if (Math.abs(dx) > 10 || Math.abs(dy) > 10) { decided = true; horiz = Math.abs(dx) > Math.abs(dy); } }
     if (!horiz) return;
     e.preventDefault();
-    view.style.transition = "none";
-    let tx = dx;
-    if (dx < 0 && !canNext()) tx = dx * 0.28;       // 次が無ければ弾性
-    view.style.transform = `translateX(${tx}px)`;
+    const inner = innerEl(); if (!inner) return;
+    inner.style.transition = "none";
+    let tx;
+    if (edge) {
+      tx = Math.max(0, dx);                 // 左端バック：右方向のみ追従
+    } else {
+      tx = dx;                              // 中央：前後移動。端は弾性
+      if (dx < 0 && !canNext()) tx = dx * 0.28;
+      if (dx > 0 && !canPrev()) tx = dx * 0.28;
+    }
+    inner.style.transform = `translateX(${tx}px)`;
   }, { passive: false });
   view.addEventListener("touchend", (e) => {
     if (!dragging) return; dragging = false;
     if (!horiz) return;
+    const inner = innerEl(); if (!inner) return;
     const dx = e.changedTouches[0].clientX - sx;
-    view.style.transition = "transform 0.2s ease";
-    if (dx <= -70 && canNext()) {            // 左スワイプ → 次の登録銘柄
-      view.style.transform = ""; detailGo(1);
-    } else if (dx >= 70 && canPrev()) {      // 右スワイプ → 前の登録銘柄
-      view.style.transform = ""; detailGo(-1);
-    } else if (dx >= 90) {                    // 右スワイプ（前が無い）→ 閉じる
-      view.style.transform = "translateX(100%)"; setTimeout(closeDetail, 200);
-    } else {
-      view.style.transform = "translateX(0)";
+    inner.style.transition = "transform 0.2s ease";
+    if (edge) {                              // 左端 → 右スワイプで戻る
+      if (dx >= 60) { inner.style.transform = "translateX(110%)"; setTimeout(closeDetail, 190); }
+      else { inner.style.transform = "translateX(0)"; }
+    } else {                                 // 中央 → 前後の銘柄
+      if (dx <= -70 && canNext()) { inner.style.transform = ""; detailGo(1); }
+      else if (dx >= 70 && canPrev()) { inner.style.transform = ""; detailGo(-1); }
+      else { inner.style.transform = "translateX(0)"; }
     }
   }, { passive: true });
 })();
@@ -1257,7 +1524,7 @@ function updateWatchToggle() {
   const btn = $("#watchToggle");
   const inList = getWatchlist().some((w) => w.symbol === currentSymbol);
   if (inList) { btn.textContent = "✓"; btn.classList.add("added"); }
-  else { btn.textContent = "＋ 追加"; btn.classList.remove("added"); }
+  else { btn.textContent = "＋"; btn.classList.remove("added"); }
 }
 $("#watchToggle").addEventListener("click", () => {
   if (!currentSymbol) return;
@@ -1267,20 +1534,23 @@ $("#watchToggle").addEventListener("click", () => {
   else {
     const nameEl = $(".quote-company");
     list.push({ symbol: currentSymbol, name: nameEl ? nameEl.textContent : "" });
-    setWatchlist(list); toast(currentSymbol + " を追加しました");
+    setWatchlist(list);
+    const tn = (getTabs().find((t) => t.id === getActiveTabId()) || {}).name || "";
+    toast(currentSymbol + " を「" + tn + "」に追加しました");
   }
   updateWatchToggle();
 });
 
 /* ウォッチリスト */
 async function renderWatchlist() {
+  renderWatchTabs();
   const area = $("#watchListArea");
   const sort = getWatchSort();
   const sortBtn = $("#watchSortBtn");
   if (sortBtn) sortBtn.textContent = "⇅ " + SORT_LABELS[sort];
   if (!getApiKey()) { area.innerHTML = statusHtml("error", "🔑", "APIキーが未設定です。設定タブでキーを保存してください。"); return; }
   let list = getWatchlist();
-  if (list.length === 0) { area.innerHTML = statusHtml("", "☆", "ウォッチリストは空です。検索して詳細画面の「＋ 追加」で登録できます。"); return; }
+  if (list.length === 0) { area.innerHTML = statusHtml("", "☆", "ウォッチリストは空です。検索して詳細画面の「＋」で登録できます。"); return; }
   if (sort === "ticker") list = [...list].sort((a, b) => a.symbol.localeCompare(b.symbol));
 
   let html = "";
@@ -1325,12 +1595,75 @@ async function renderWatchlist() {
     wraps.forEach((w) => area.appendChild(w));
   }
 }
-$("#refreshBtn").addEventListener("click", () => {
-  const fab = $("#refreshBtn");
-  fab.classList.add("spinning");
-  renderWatchlist().finally(() => setTimeout(() => fab.classList.remove("spinning"), 600));
-  toast("価格を更新しました");
-});
+$("#screenerBtn").addEventListener("click", openScreener);
+
+/* リスト選択シート（追加先タブを選ぶ・再利用） */
+let listPickerCb = null;
+function pickList(cb, title) {
+  listPickerCb = cb;
+  $("#listPickerTitle").textContent = title || "どのリストに追加？";
+  const body = $("#listPickerBody");
+  body.innerHTML = getTabs().map((t) => `<button class="sheet-item" data-tabid="${escapeAttr(t.id)}">${escapeHtml(t.name)}<span class="sheet-count">${(t.items || []).length}件</span></button>`).join("");
+  body.querySelectorAll(".sheet-item").forEach((b) => { b.onclick = () => { const id = b.dataset.tabid; hideListPicker(); if (listPickerCb) listPickerCb(id); }; });
+  $("#listPickerMask").classList.add("open");
+}
+function hideListPicker() { $("#listPickerMask").classList.remove("open"); }
+$("#listPickerCancel").addEventListener("click", hideListPicker);
+$("#listPickerMask").addEventListener("click", (e) => { if (e.target.id === "listPickerMask") hideListPicker(); });
+function addSymbolToTab(symbol, tabId, name) {
+  const tabs = getTabs(); const t = tabs.find((x) => x.id === tabId); if (!t) return false;
+  if (!t.items) t.items = [];
+  const exists = t.items.some((w) => w.symbol === symbol);
+  if (!exists) { t.items.push({ symbol, name: name || "" }); setTabs(tabs); }
+  return !exists;
+}
+
+/* 詳細の「＋」長押し → 追加先リストを選択 */
+let wtLongTimer = null;
+$("#watchToggle").addEventListener("touchstart", () => {
+  clearTimeout(wtLongTimer);
+  wtLongTimer = setTimeout(() => {
+    if (!currentSymbol) return;
+    suppressClickUntil = Date.now() + 500;
+    if (navigator.vibrate) { try { navigator.vibrate(15); } catch (e) {} }
+    const nameEl = $(".quote-company");
+    const nm = nameEl ? nameEl.textContent : "";
+    pickList((tabId) => {
+      const added = addSymbolToTab(currentSymbol, tabId, nm);
+      const tn = (getTabs().find((t) => t.id === tabId) || {}).name || "";
+      toast(currentSymbol + (added ? " を「" + tn + "」に追加" : " は既に「" + tn + "」にあります"));
+      updateWatchToggle();
+    }, currentSymbol + " の追加先リスト");
+  }, 500);
+}, { passive: true });
+$("#watchToggle").addEventListener("touchmove", () => clearTimeout(wtLongTimer), { passive: true });
+$("#watchToggle").addEventListener("touchend", () => clearTimeout(wtLongTimer));
+
+/* プルダウン更新（更新ボタンの代わり） */
+(function attachPullRefresh() {
+  const ind = $("#pullRefresh");
+  let startY = 0, pulling = false, dist = 0;
+  const atTop = () => currentTab() === "watch" && window.scrollY <= 0 &&
+    !$("#detailView").classList.contains("active") && !$("#bubbleView").classList.contains("active") &&
+    !$("#sectorView").classList.contains("active") && !$("#screenerView").classList.contains("active");
+  document.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 1 && atTop()) { startY = e.touches[0].clientY; pulling = true; dist = 0; }
+    else pulling = false;
+  }, { passive: true });
+  document.addEventListener("touchmove", (e) => {
+    if (!pulling) return;
+    dist = e.touches[0].clientY - startY;
+    if (dist > 0 && window.scrollY <= 0) {
+      ind.style.height = Math.min(dist, 80) + "px"; ind.style.opacity = Math.min(1, dist / 70);
+      ind.textContent = dist > 70 ? "離して更新" : "↓ 引っ張って更新";
+    } else { pulling = false; ind.style.height = "0"; ind.style.opacity = "0"; }
+  }, { passive: true });
+  document.addEventListener("touchend", () => {
+    if (!pulling) return; pulling = false;
+    if (dist > 70) { ind.style.height = "30px"; ind.textContent = "更新中…"; renderWatchlist().finally(() => { ind.style.height = "0"; ind.style.opacity = "0"; }); }
+    else { ind.style.height = "0"; ind.style.opacity = "0"; }
+  }, { passive: true });
+})();
 $("#watchSortBtn").addEventListener("click", () => {
   const i = SORT_MODES.indexOf(getWatchSort());
   setWatchSort(SORT_MODES[(i + 1) % SORT_MODES.length]);
@@ -1342,6 +1675,11 @@ $("#watchSortBtn").addEventListener("click", () => {
    探索マップ（バブルチャート）
    ======================================================================== */
 const metricLabels = { per: "PER", pbr: "PBR", dividendYield: "配当利回り", priceChange: "変化率%" };
+function axisFmt(key, v) {
+  if (v == null || isNaN(v)) return "—";
+  if (key === "dividendYield" || key === "priceChange") return fmtNum(v, 1) + "%";
+  return fmtNum(v, 1);
+}
 const SECTOR_PALETTE = ["#4c8dff", "#2bd47e", "#a855f7", "#f5a623", "#ff6b6b", "#22c9c9", "#e879a6", "#8b93ff", "#f7c948", "#5ad1a0"];
 function sectorColor(sector) {
   const s = String(sector || "");
@@ -1385,6 +1723,7 @@ async function openBubble() {
   const view = $("#bubbleView");
   view.classList.add("active");
   view.scrollTop = 0;
+  restoreBubbleAxes();
   $("#bubbleChart").innerHTML = loadingHtml("読み込み中…");
   $("#bubbleNote").innerHTML = "";
   try {
@@ -1409,6 +1748,16 @@ function renderBubbles() {
   if (usable.length === 0) {
     chart.innerHTML = statusHtml("", "🫧", "この軸で表示できるデータがありません。別の軸を選んでください。");
   } else {
+    // 背景の薄いスケール（グリッド）＋XY軸の目盛り・単位（表示サイズは変えず重ねる）
+    const xs = usable.map((c) => c[xKey]), ys = usable.map((c) => c[yKey]);
+    const xmin = Math.min(...xs), xmax = Math.max(...xs), ymin = Math.min(...ys), ymax = Math.max(...ys);
+    chart.insertAdjacentHTML("beforeend", `<div class="bubble-grid"></div>
+      <span class="bubble-axname bx-name">${metricLabels[xKey]} →</span>
+      <span class="bubble-axname by-name">↑ ${metricLabels[yKey]}</span>
+      <span class="bubble-axis" style="left:4px;bottom:3px;">${axisFmt(xKey, xmin)}</span>
+      <span class="bubble-axis" style="right:4px;bottom:3px;">${axisFmt(xKey, xmax)}</span>
+      <span class="bubble-axis" style="right:4px;top:3px;">${axisFmt(yKey, ymax)}</span>
+      <span class="bubble-axis" style="left:4px;bottom:18px;">${axisFmt(yKey, ymin)}</span>`);
     usable.forEach((c) => {
       const size = Math.round(24 + mcapPos(c.marketCap) * 44);  // 時価総額で大きさ
       const b = document.createElement("button");
@@ -1427,10 +1776,246 @@ function renderBubbles() {
   if (missing.length) note += `<br><span style="color:var(--text-dim);">データ不足: ${missing.map((c) => escapeHtml(c.ticker)).join(", ")}</span>`;
   $("#bubbleNote").innerHTML = note;
 }
+const LS_BUBBLE = "bubble_axes";
+function restoreBubbleAxes() {
+  try {
+    const a = JSON.parse(localStorage.getItem(LS_BUBBLE));
+    if (a) { if (a.x) $("#xAxisSelect").value = a.x; if (a.y) $("#yAxisSelect").value = a.y; }
+  } catch (e) {}
+}
+function saveBubbleAxes() {
+  localStorage.setItem(LS_BUBBLE, JSON.stringify({ x: $("#xAxisSelect").value, y: $("#yAxisSelect").value }));
+}
 $("#bubbleBtn").addEventListener("click", openBubble);
 $("#bubbleBack").addEventListener("click", closeBubble);
-$("#xAxisSelect").addEventListener("change", renderBubbles);
-$("#yAxisSelect").addEventListener("change", renderBubbles);
+$("#xAxisSelect").addEventListener("change", () => { saveBubbleAxes(); renderBubbles(); });
+$("#yAxisSelect").addEventListener("change", () => { saveBubbleAxes(); renderBubbles(); });
+/* ========================================================================
+   セクター動向ページ（業種別SPDR ETFの値動き）
+   ======================================================================== */
+const SECTOR_ETFS = [
+  { sym: "SPY",  name: "S&P500（市場全体）" },
+  { sym: "XLK",  name: "テクノロジー" },
+  { sym: "XLC",  name: "通信サービス" },
+  { sym: "XLY",  name: "一般消費財" },
+  { sym: "XLF",  name: "金融" },
+  { sym: "XLV",  name: "ヘルスケア" },
+  { sym: "XLI",  name: "資本財" },
+  { sym: "XLP",  name: "生活必需品" },
+  { sym: "XLE",  name: "エネルギー" },
+  { sym: "XLU",  name: "公益" },
+  { sym: "XLB",  name: "素材" },
+  { sym: "XLRE", name: "不動産" },
+];
+const LS_SECTOR_SORT = "sector_sort";
+const SEC_SORT_MODES = ["change", "default", "ticker"];
+const SEC_SORT_LABELS = { change: "変化率", default: "標準", ticker: "A→Z" };
+function getSectorSort() { return localStorage.getItem(LS_SECTOR_SORT) || "change"; }
+function setSectorSort(v) { localStorage.setItem(LS_SECTOR_SORT, v); }
+let sectorQuotes = {};
+function sortSectorRows() {
+  const area = $("#sectorList"); if (!area) return;
+  const mode = getSectorSort();
+  const btn = $("#sectorSortBtn"); if (btn) btn.textContent = "⇅ " + SEC_SORT_LABELS[mode];
+  const orderIndex = {}; SECTOR_ETFS.forEach((s, i) => { orderIndex[s.sym] = i; });
+  const rows = [...area.querySelectorAll(".sector-row")];
+  rows.sort((a, b) => {
+    const sa = a.dataset.symbol, sb = b.dataset.symbol;
+    if (mode === "ticker") return sa.localeCompare(sb);
+    if (mode === "default") return orderIndex[sa] - orderIndex[sb];
+    const qa = sectorQuotes[sa], qb = sectorQuotes[sb];
+    const va = (qa && qa.dp != null) ? qa.dp : -Infinity, vb = (qb && qb.dp != null) ? qb.dp : -Infinity;
+    return vb - va;
+  });
+  rows.forEach((r) => area.appendChild(r));
+}
+function closeSector() { $("#sectorView").classList.remove("active"); }
+async function openSector() {
+  if (!getApiKey()) { toast("APIキーが未設定です"); return; }
+  const view = $("#sectorView"); view.classList.add("active"); view.scrollTop = 0;
+  { const btn = $("#sectorSortBtn"); if (btn) btn.textContent = "⇅ " + SEC_SORT_LABELS[getSectorSort()]; }
+  const area = $("#sectorList");
+  area.innerHTML = SECTOR_ETFS.map((s) => `<div class="sector-row" data-symbol="${s.sym}">
+      <span class="sector-name">${escapeHtml(s.name)}</span><span class="sector-tk">${s.sym}</span>
+      <span class="sector-sp"></span>
+      <span class="sector-price" data-sp>…</span><span class="sector-chg flat" data-sc>…</span>
+    </div>`).join("");
+  area.querySelectorAll(".sector-row").forEach((r) => { r.onclick = () => { closeSector(); openDetail(r.dataset.symbol); }; });
+  sortSectorRows();   // 取得前に前回の並びを即適用（標準に戻るチラつき防止）
+  const qmap = {};
+  await runLimited(SECTOR_ETFS, 8, async (s) => {
+    const row = area.querySelector(`.sector-row[data-symbol="${s.sym}"]`); if (!row) return;
+    const pe = row.querySelector("[data-sp]"), ce = row.querySelector("[data-sc]");
+    try {
+      const q = await fetchQuoteRetry(s.sym); qmap[s.sym] = q;
+      if (pe) pe.textContent = fmtPrice(q.c);
+      if (ce) { ce.className = "sector-chg " + changeClass(q.d); ce.textContent = fmtPct(q.dp); }
+    } catch (e) { if (pe) pe.textContent = "—"; if (ce) { ce.className = "sector-chg flat"; ce.textContent = "—"; } }
+  });
+  sectorQuotes = qmap;
+  sortSectorRows();
+}
+$("#sectorBtn").addEventListener("click", openSector);
+$("#sectorBack").addEventListener("click", closeSector);
+$("#sectorSortBtn").addEventListener("click", () => {
+  const i = SEC_SORT_MODES.indexOf(getSectorSort());
+  setSectorSort(SEC_SORT_MODES[(i + 1) % SEC_SORT_MODES.length]);
+  sortSectorRows();
+});
+(function attachSectorSwipe() {
+  const view = $("#sectorView");
+  let sx = 0, sy = 0, tracking = false, decided = false, horiz = false;
+  view.addEventListener("touchstart", (e) => { if (e.touches.length > 1) { tracking = false; return; } sx = e.touches[0].clientX; sy = e.touches[0].clientY; tracking = true; decided = false; horiz = false; }, { passive: true });
+  view.addEventListener("touchmove", (e) => { if (!tracking || decided) return; const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy; if (Math.abs(dx) > 12 || Math.abs(dy) > 12) { decided = true; horiz = Math.abs(dx) > Math.abs(dy) * 1.2; } }, { passive: true });
+  view.addEventListener("touchend", (e) => { if (!tracking) return; tracking = false; if (!horiz) return; const dx = e.changedTouches[0].clientX - sx; if (dx >= 60) { suppressClickUntil = Date.now() + 400; closeSector(); } }, { passive: true });
+})();
+
+/* ========================================================================
+   スクリーニング（主要米国株ユニバースを条件で絞り込み）
+   ======================================================================== */
+const SCREEN_UNIVERSE = ["AAPL","MSFT","GOOGL","AMZN","META","NVDA","TSLA","AVGO","AMD","ORCL","CRM","JPM","V","MA","BAC","JNJ","UNH","LLY","PFE","ABBV","XOM","CVX","KO","PEP","PG","WMT","HD","MCD","T","VZ"];
+const screenCache = {};
+async function fetchScreenData(sym) {
+  if (screenCache[sym]) return screenCache[sym];
+  const [quote, metric] = await Promise.all([
+    fetchQuote(sym).catch(() => null),
+    apiFetch("/stock/metric", { symbol: sym, metric: "all" }).catch(() => null),
+  ]);
+  const m = (metric && metric.metric) ? metric.metric : {};
+  const q = quote || {};
+  const obj = {
+    ticker: sym,
+    price: q.c ?? null,
+    mcap: m.marketCapitalization ?? null,   // 百万ドル
+    pbr: m.pbAnnual ?? m.pbQuarterly ?? null,
+    yield: m.currentDividendYieldTTM ?? m.dividendYieldIndicatedAnnual ?? null,
+    div: m.dividendPerShareAnnual ?? m.dividendPerShareTTM ?? null,
+  };
+  screenCache[sym] = obj;
+  return obj;
+}
+function readScrCriteria() {
+  const c = {};
+  $$("#scrForm input").forEach((inp) => {
+    const v = parseFloat(inp.value);
+    if (!isNaN(v)) c[inp.dataset.k + "_" + inp.dataset.b] = v;
+  });
+  return c;
+}
+function passScr(d, c) {
+  const chk = (val, min, max) => {
+    if (min == null && max == null) return true;      // 条件なし
+    if (val == null) return false;                    // 条件あり×値なし→除外
+    if (min != null && val < min) return false;
+    if (max != null && val > max) return false;
+    return true;
+  };
+  const mcapB = d.mcap != null ? d.mcap / 1000 : null;  // 百万→十億($B)
+  return chk(d.price, c.price_min, c.price_max)
+    && chk(mcapB, c.mcap_min, c.mcap_max)
+    && chk(d.pbr, c.pbr_min, c.pbr_max)
+    && chk(d.yield, c.yield_min, c.yield_max)
+    && chk(d.div, c.div_min, c.div_max);
+}
+let screenResults = [];
+let screenLimit = 20;
+const screenSel = new Set();
+function openScreener() {
+  if (!getApiKey()) { toast("APIキーが未設定です"); return; }
+  const view = $("#screenerView"); view.classList.add("active"); view.scrollTop = 0;
+}
+function closeScreener() { $("#screenerView").classList.remove("active"); }
+async function runScreen() {
+  if (!getApiKey()) { toast("APIキーが未設定です"); return; }
+  const c = readScrCriteria();
+  const res = $("#scrResults");
+  res.innerHTML = loadingHtml("検索中…（初回は取得に少し時間がかかります）");
+  $("#scrActions").style.display = "none";
+  const data = [];
+  try {
+    await runLimited(SCREEN_UNIVERSE, 6, async (sym) => { data.push(await fetchScreenData(sym)); });
+  } catch (e) { res.innerHTML = statusHtml("error", "⚠️", errorMessage(e)); return; }
+  screenResults = data.filter((d) => passScr(d, c)).sort((a, b) => (b.mcap || 0) - (a.mcap || 0));
+  screenSel.clear();
+  const fs = $("#scrFilterSec"); if (fs) fs.open = false;   // 検索後は条件を畳んで結果を広く
+  renderScreenResults();
+}
+function renderScreenResults() {
+  const res = $("#scrResults");
+  if (screenResults.length === 0) {
+    res.innerHTML = statusHtml("", "🔍", "条件に合う銘柄がありませんでした。条件をゆるめてください。");
+    $("#scrActions").style.display = "none";
+    return;
+  }
+  $("#scrActions").style.display = "flex";
+  const shown = screenResults.slice(0, screenLimit);
+  const selShown = shown.filter((d) => screenSel.has(d.ticker)).length;
+  $("#scrSelectAll").textContent = (selShown === shown.length) ? "全解除" : "全選択";
+  const limitBtns = [10, 20, 50].map((n) => `<button class="scr-limbtn ${screenLimit === n ? "on" : ""}" data-lim="${n}">${n}</button>`).join("");
+  res.innerHTML = `<div class="scr-reshead"><span>${screenResults.length}件ヒット（表示${shown.length}）</span><span class="scr-limit">${limitBtns}</span></div>` + shown.map((d) => {
+    const sel = screenSel.has(d.ticker);
+    const meta = `${d.price != null ? "$" + fmtNum(d.price, 2) : "—"}・${d.mcap ? fmtMarketCap(d.mcap) : "—"}・PBR ${fmtNum(d.pbr, 1)}・利回り ${d.yield != null ? fmtNum(d.yield, 1) + "%" : "—"}`;
+    return `<div class="scr-row2 ${sel ? "sel" : ""}" data-symbol="${escapeAttr(d.ticker)}">
+        <span class="scr-check">${sel ? "✓" : ""}</span>
+        <span class="scr-sym">${escapeHtml(d.ticker)}</span>
+        <span class="scr-sp"></span>
+        <span class="scr-meta">${meta}</span>
+      </div>`;
+  }).join("");
+  res.querySelectorAll(".scr-row2").forEach((r) => {
+    r.onclick = () => { const s = r.dataset.symbol; if (screenSel.has(s)) screenSel.delete(s); else screenSel.add(s); renderScreenResults(); };
+  });
+  res.querySelectorAll(".scr-limbtn").forEach((b) => {
+    b.onclick = () => { screenLimit = parseInt(b.dataset.lim, 10); renderScreenResults(); };
+  });
+}
+$("#screenerRun").addEventListener("click", runScreen);
+$("#screenerBack").addEventListener("click", closeScreener);
+$("#scrSelectAll").addEventListener("click", () => {
+  const shown = screenResults.slice(0, screenLimit);
+  const allSel = shown.length > 0 && shown.every((d) => screenSel.has(d.ticker));
+  if (allSel) shown.forEach((d) => screenSel.delete(d.ticker));
+  else shown.forEach((d) => screenSel.add(d.ticker));
+  renderScreenResults();
+});
+$("#scrRegister").addEventListener("click", () => {
+  if (screenSel.size === 0) { toast("登録する銘柄を選んでください"); return; }
+  pickList((tabId) => {
+    let n = 0;
+    screenSel.forEach((s) => { if (addSymbolToTab(s, tabId, "")) n++; });
+    const tn = (getTabs().find((t) => t.id === tabId) || {}).name || "";
+    toast(n + "件を「" + tn + "」に登録しました");
+    screenSel.clear(); renderScreenResults();
+  }, "登録先リストを選択");
+});
+(function attachScreenerSwipe() {
+  const view = $("#screenerView");
+  let sx = 0, sy = 0, tracking = false, decided = false, horiz = false;
+  view.addEventListener("touchstart", (e) => { if (e.touches.length > 1) { tracking = false; return; } sx = e.touches[0].clientX; sy = e.touches[0].clientY; tracking = true; decided = false; horiz = false; }, { passive: true });
+  view.addEventListener("touchmove", (e) => { if (!tracking || decided) return; const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy; if (Math.abs(dx) > 12 || Math.abs(dy) > 12) { decided = true; horiz = Math.abs(dx) > Math.abs(dy) * 1.2; } }, { passive: true });
+  view.addEventListener("touchend", (e) => { if (!tracking) return; tracking = false; if (!horiz) return; const dx = e.changedTouches[0].clientX - sx; if (dx >= 60) { suppressClickUntil = Date.now() + 400; closeScreener(); } }, { passive: true });
+})();
+
+/* バブル画面：右スワイプで戻る */
+(function attachBubbleSwipe() {
+  const view = $("#bubbleView");
+  let sx = 0, sy = 0, tracking = false, decided = false, horiz = false;
+  view.addEventListener("touchstart", (e) => {
+    if (e.touches.length > 1) { tracking = false; return; }
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; tracking = true; decided = false; horiz = false;
+  }, { passive: true });
+  view.addEventListener("touchmove", (e) => {
+    if (!tracking || decided) return;
+    const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
+    if (Math.abs(dx) > 12 || Math.abs(dy) > 12) { decided = true; horiz = Math.abs(dx) > Math.abs(dy) * 1.2; }
+  }, { passive: true });
+  view.addEventListener("touchend", (e) => {
+    if (!tracking) return; tracking = false;
+    if (!horiz) return;
+    const dx = e.changedTouches[0].clientX - sx;
+    if (dx >= 60) { suppressClickUntil = Date.now() + 400; closeBubble(); }
+  }, { passive: true });
+})();
 
 function attachWatchTap() {
   $$("#watchListArea .wl-item").forEach((item) => {
@@ -1629,7 +2214,7 @@ function statusHtml(kind, icon, msg) { return `<div class="status ${kind}"><div 
 
 /* 表示テーマ（ダーク／ライト） */
 const LS_THEME = "theme";
-function getTheme() { return localStorage.getItem(LS_THEME) || "dark"; }
+function getTheme() { return localStorage.getItem(LS_THEME) || "light"; }
 function applyTheme(t) { document.documentElement.classList.toggle("light", t === "light"); }
 function updateThemeButtons() { const cur = getTheme(); $$(".theme-opt").forEach((b) => b.classList.toggle("active", b.dataset.theme === cur)); }
 function setThemeMode(t) { localStorage.setItem(LS_THEME, t); applyTheme(t); updateThemeButtons(); }
