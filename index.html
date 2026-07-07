@@ -316,7 +316,10 @@
   .watch-tabs {
     flex: 1 1 auto; min-width: 0;
     display: flex; gap: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; align-items: center; padding: 4px 2px;
+    scrollbar-width: none; align-items: center;
+    /* overflow-x:auto は overflow-y も auto にするため、選択タブの scale/影が
+       上下左右で四角く切れる。padding で逃がし、負マージンで高さを相殺する。 */
+    padding: 10px 8px; margin: -6px 0;
     scroll-snap-type: x proximity;
   }
   .watch-tabs::-webkit-scrollbar { display: none; }
@@ -416,10 +419,11 @@
 
   /* スクリーニング */
   .scr-note { font-size: 12px; color: var(--text-sub); margin: 4px 2px 10px; }
-  .scr-form { display: flex; flex-direction: column; gap: 8px; }
+  .scr-form { display: flex; flex-direction: column; gap: 6px; }
   .scr-row { display: grid; grid-template-columns: 84px 1fr 14px 1fr; align-items: center; gap: 8px; }
   .scr-label { font-size: 12px; color: var(--text-sub); white-space: nowrap; }
-  .scr-row input { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 16px; padding: 11px 9px; outline: none; }
+  /* 入力チップは一覧行の帯サイズに統一（min-height 32 / 縦 padding 6px / 角丸 --radius） */
+  .scr-row input { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 16px; min-height: 32px; padding: 6px 12px; outline: none; }
   .scr-row span { color: var(--text-dim); font-size: 12px; text-align: center; }
   .scr-topbar { display: flex; align-items: center; gap: 10px; margin: 4px 0 8px; padding: 0 12px 0 13px; }
   .scr-selall { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; padding: 0; min-height: auto; font-size: 12px; color: var(--text-sub); }
@@ -482,10 +486,11 @@
   }
   .bubble {
     position: absolute; transform: translate(-50%,-50%);
-    border-radius: 50%; border: none; padding: 0;
+    /* 塗りは半透明rgba（inline指定）＋業種色の輪郭線で、重なっても円が判別できる */
+    border-radius: 50%; border: 1.5px solid; padding: 0;
     display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 10px; font-weight: 700; min-height: 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.4); opacity: 0.92;
+    color: #fff; font-size: 9px; font-weight: 700; min-height: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.22);
   }
   .bubble span { pointer-events: none; text-shadow: 0 1px 2px rgba(0,0,0,0.7); }
   /* バブル背景の薄いスケール＋軸ラベル（重ねるのでサイズ不変） */
@@ -709,6 +714,9 @@
           <option value="pbr">PBR</option>
           <option value="dividendYield">配当利回り</option>
           <option value="priceChange">変化率%</option>
+          <option value="roe">ROE</option>
+          <option value="eps">EPS</option>
+          <option value="shares">発行株式数</option>
         </select>
       </label>
       <label>縦軸
@@ -717,6 +725,9 @@
           <option value="per">PER</option>
           <option value="pbr">PBR</option>
           <option value="priceChange">変化率%</option>
+          <option value="roe">ROE</option>
+          <option value="eps">EPS</option>
+          <option value="shares">発行株式数</option>
         </select>
       </label>
     </div>
@@ -1740,11 +1751,18 @@ $("#watchSortBtn").addEventListener("click", () => {
 /* ========================================================================
    探索マップ（バブルチャート）
    ======================================================================== */
-const metricLabels = { per: "PER", pbr: "PBR", dividendYield: "配当利回り", priceChange: "変化率%" };
+const metricLabels = { per: "PER", pbr: "PBR", dividendYield: "配当利回り", priceChange: "変化率%", roe: "ROE", eps: "EPS", shares: "発行株式数" };
 function axisFmt(key, v) {
   if (v == null || isNaN(v)) return "—";
-  if (key === "dividendYield" || key === "priceChange") return fmtNum(v, 1) + "%";
+  if (key === "dividendYield" || key === "priceChange" || key === "roe") return fmtNum(v, 1) + "%";
+  if (key === "eps") return "$" + fmtNum(v, 2);
+  if (key === "shares") return fmtShares(v);
   return fmtNum(v, 1);
+}
+function hexToRgba(hex, a) {
+  const h = String(hex).replace("#", "");
+  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${a})`;
 }
 const SECTOR_PALETTE = ["#4c8dff", "#2bd47e", "#a855f7", "#f5a623", "#ff6b6b", "#22c9c9", "#e879a6", "#8b93ff", "#f7c948", "#5ad1a0"];
 function sectorColor(sector) {
@@ -1770,6 +1788,9 @@ async function fetchBubbleData(sym) {
     pbr: m.pbAnnual ?? m.pbQuarterly ?? null,
     dividendYield: m.currentDividendYieldTTM ?? m.dividendYieldIndicatedAnnual ?? null,
     priceChange: q.dp ?? null,
+    roe: m.roeTTM ?? null,
+    eps: m.epsTTM ?? null,
+    shares: p.shareOutstanding ?? null,
   };
   bubbleCache[sym] = obj;
   return obj;
@@ -1825,13 +1846,15 @@ function renderBubbles() {
       <span class="bubble-axis" style="right:4px;top:3px;">${axisFmt(yKey, ymax)}</span>
       <span class="bubble-axis" style="left:4px;bottom:18px;">${axisFmt(yKey, ymin)}</span>`);
     usable.forEach((c) => {
-      const size = Math.round(24 + mcapPos(c.marketCap) * 44);  // 時価総額で大きさ
+      const size = Math.round(16 + mcapPos(c.marketCap) * 30);  // 時価総額で大きさ（重なり視認性のため縮小）
       const b = document.createElement("button");
       b.className = "bubble";
       b.style.left = xScale(c[xKey]).toFixed(1) + "%";
       b.style.top = yScale(c[yKey]).toFixed(1) + "%";
       b.style.width = size + "px"; b.style.height = size + "px";
-      b.style.background = sectorColor(c.sector);
+      const col = sectorColor(c.sector);
+      b.style.background = hexToRgba(col, 0.5);  // 透過（重なっても背後が見える）
+      b.style.borderColor = col;
       b.innerHTML = `<span>${escapeHtml(c.ticker)}</span>`;
       b.title = c.ticker + " " + c.name;
       b.onclick = () => { closeBubble(); openDetail(c.ticker); };
